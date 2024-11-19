@@ -1,21 +1,27 @@
 steps:
-# Passo 1: Clonar o repositório (caso necessário)
-- name: 'gcr.io/cloud-builders/git'
-  args: ['clone', 'https://github.com/<seu-usuário>/<seu-repositório>.git']
-
-# Passo 2: Rodar testes de qualidade
+# Passo 1: Rodar testes de qualidade com Maven
 - name: 'gcr.io/cloud-builders/maven'
   args: ['clean', 'install']
+  id: 'Testes de Qualidade'
 
-# Passo 3: Condicional para lidar com sucesso ou falha
-- name: 'gcr.io/cloud-builders/git'
-  args: ['checkout', 'main']
+# Passo 2: Verificar se os testes passaram
+- name: 'ubuntu'
   entrypoint: '/bin/bash'
-  script: |
-    if [ $? -ne 0 ]; then
-      echo "Build falhou. Notificando falha."
-      exit 1
-    else
-      git merge develop
-      git push origin main
-    fi
+  args:
+    - '-c'
+    - |
+      if [ $? -ne 0 ]; then
+        echo "Build falhou. Notificando falha."
+        exit 1
+      fi
+
+# Passo 3: Fazer merge para main (caso testes passem)
+- name: 'gcr.io/cloud-builders/git'
+  args: ['fetch', 'origin', 'main']
+  id: 'Atualizar branch main'
+- name: 'gcr.io/cloud-builders/git'
+  args: ['merge', 'develop']
+  id: 'Merge para main'
+- name: 'gcr.io/cloud-builders/git'
+  args: ['push', 'origin', 'main']
+  id: 'Enviar mudanças para main'
