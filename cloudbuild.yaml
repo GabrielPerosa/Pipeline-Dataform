@@ -1,0 +1,21 @@
+steps:
+# Passo 1: Clonar o repositório (caso necessário)
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/<seu-usuário>/<seu-repositório>.git']
+
+# Passo 2: Rodar testes de qualidade
+- name: 'gcr.io/cloud-builders/maven'
+  args: ['clean', 'install']
+
+# Passo 3: Condicional para lidar com sucesso ou falha
+- name: 'gcr.io/cloud-builders/git'
+  args: ['checkout', 'main']
+  entrypoint: '/bin/bash'
+  script: |
+    if [ $? -ne 0 ]; then
+      echo "Build falhou. Notificando falha."
+      exit 1
+    else
+      git merge develop
+      git push origin main
+    fi
