@@ -1,27 +1,35 @@
 steps:
-# Passo 1: Rodar testes de qualidade com Maven
-- name: 'gcr.io/cloud-builders/maven'
-  args: ['clean', 'install']
-  id: 'Testes de Qualidade'
+# Passo 1: Clonar a branch de desenvolvimento do repositório
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', '--branch=develop', 'https://github.com/GabrielPerosa/Pipeline-Dataform.git']
 
-# Passo 2: Verificar se os testes passaram
-- name: 'ubuntu'
-  entrypoint: '/bin/bash'
+# Passo 2: Instalar a ferramenta SQLFluff para verificação de qualidade do código SQL
+- name: 'python:3.9'
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
-      if [ $? -ne 0 ]; then
-        echo "Build falhou. Notificando falha."
-        exit 1
-      fi
+      pip install sqlfluff
 
-# Passo 3: Fazer merge para main (caso testes passem)
+# Passo 3: Executar o SQLFluff nos arquivos SQL
+- name: 'python:3.9'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      sqlfluff lint /workspace --dialect bigquery
+
+# Passo 4: Validar o resultado do lint e condicionar as ações
 - name: 'gcr.io/cloud-builders/git'
-  args: ['fetch', 'origin', 'main']
-  id: 'Atualizar branch main'
-- name: 'gcr.io/cloud-builders/git'
-  args: ['merge', 'develop']
-  id: 'Merge para main'
-- name: 'gcr.io/cloud-builders/git'
-  args: ['push', 'origin', 'main']
-  id: 'Enviar mudanças para main'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      if sqlfluff lint /workspace --dialect bigquery | grep -q "FAIL"; then
+        echo "Qualidade do código não foi aprovada. Notificando falha."
+        exit 1
+      else
+        git checkout main
+        git merge develop
+        git push origin main
+      fi
