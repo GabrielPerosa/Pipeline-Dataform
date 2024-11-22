@@ -1,7 +1,15 @@
 steps:
-# Passo 1: Clonar o repositório (caso necessário)
-- name: 'gcr.io/cloud-builders/git'
-  args: ['clone', 'https://github.com/GabrielPerosa/Pipeline-Dataform.git']
+  # Passo 1: Clonar o repositório
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git clone https://github.com/GabrielPerosa/Pipeline-Dataform.git
+        cd Pipeline-Dataform
+        git branch -a  # Verifica todas as branches do repositório
+        git fetch origin  # Faz o fetch para garantir que todas as branches sejam baixadas
+        git checkout main  # Tenta fazer o checkout na branch main
 
 # Passo 2: Instalar dependências do SQLFluff
 - name: 'python:3.9'
