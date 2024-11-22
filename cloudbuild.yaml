@@ -5,13 +5,11 @@ steps:
 
 # Passo 2: Instalar dependências do SQLFluff
 - name: 'python:3.9'
-  entrypoint: 'bash'
   script: |
     pip install --no-cache-dir sqlfluff
 
 # Passo 3: Verificar qualidade dos scripts SQL
 - name: 'python:3.9'
-  entrypoint: 'bash'
   script: |
     # Identificar o email do autor do commit
     COMMIT_AUTHOR_EMAIL="gabrielperosa493@gmail.com"  # E-mail fixo para testes
@@ -28,7 +26,6 @@ steps:
 
 # Passo 4: Mesclar na branch main caso os testes passem
 - name: 'gcr.io/cloud-builders/git'
-  entrypoint: 'bash'
   script: |
     git checkout main
     git merge workspace-dataform-teste
@@ -49,4 +46,4 @@ substitutions:
 timeout: '1200s'
 
 options:
-  logging: CLOUD_LOGGING_ONLY  # Configuração de log para Cloud Logging
+  logging: CLOUD_LOGGING_ONLY
