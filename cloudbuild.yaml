@@ -14,7 +14,7 @@ steps:
   entrypoint: 'bash'
   script: |
     # Identificar o email do autor do commit
-    COMMIT_AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
+    COMMIT_AUTHOR_EMAIL="gabrielperosa493@gmail.com"  # E-mail fixo para testes
     # Executar o lint
     sqlfluff lint definitions/ > lint-results.txt
     # Verificar o resultado do lint
@@ -44,6 +44,6 @@ steps:
   ]
 
 substitutions:
-  _COMMIT_AUTHOR_EMAIL: 'default@example.com'
+  _COMMIT_AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
 timeout: '1200s'
