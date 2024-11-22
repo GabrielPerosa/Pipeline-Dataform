@@ -15,8 +15,8 @@ steps:
   script: |
     # Identificar o email do autor do commit
     COMMIT_AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
-    # Executar o lint nos scripts dentro do diretório 'definitions'
-    sqlfluff lint definitions/*.sqlx > lint-results.txt
+    # Executar o lint
+    sqlfluff lint definitions/ > lint-results.txt
     # Verificar o resultado do lint
     if grep -q "L:  " lint-results.txt; then
       echo "Testes SQL falharam. Notificando erro por email."
@@ -31,16 +31,16 @@ steps:
   entrypoint: 'bash'
   script: |
     git checkout main
-    git merge develop
+    git merge workspace-dataform-teste
     git push origin main
 
 # Passo 5: Enviar scripts para o Dataform
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [
     'dataform', 'install',
-    '--repository="repositorio-producao"',
-    '--workspace="workspace-dataform-produca"',
-    '--location="southamerica-east1"'
+    '--repository="repositorio-dataform"',
+    '--workspace="workspace-dataform"',
+    '--location="us-central1"'
   ]
 
 substitutions:
