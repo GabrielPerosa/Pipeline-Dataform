@@ -22,14 +22,15 @@ steps:
       echo "SQL Quality Check Passed."
     fi
 
-# Passo 3: Mesclar na branch main caso os testes passem
+# Passo 4: Mesclar na branch main caso os testes passem
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   script: |
+    # Atualizar a branch main
     git checkout main
+    git pull origin main  # Adicionamos esse comando para garantir que a branch main está atualizada
     git merge workspace-dataform-teste
     git push origin main
-
 # Passo 4: Enviar scripts para o Dataform
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [
