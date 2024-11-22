@@ -1,7 +1,7 @@
 config {
   type: "incremental",
   name: "cobranca_acordo",
-  description: "Carrega acordos de cobrança.",
+  description: "Carrega os acordos de cobrança.",
   tags: [],
   columns: {
     id_acordo_cobranca: "Identificador do acordo de cobrança.",
