@@ -1,11 +1,15 @@
 steps:
-# Passo 1: Instalar dependências do SQLFluff
+# Passo 1: Clonar o repositório (caso necessário)
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/GabrielPerosa/Pipeline-Dataform.git']
+
+# Passo 2: Instalar dependências do SQLFluff
 - name: 'python:3.9'
   entrypoint: 'bash'
   script: |
     pip install --no-cache-dir sqlfluff
 
-# Passo 2: Verificar qualidade dos scripts SQL
+# Passo 3: Verificar qualidade dos scripts SQL
 - name: 'python:3.9'
   entrypoint: 'bash'
   script: |
@@ -26,21 +30,24 @@ steps:
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   script: |
-    # Atualizar a branch main
     git checkout main
-    git pull origin main  # Adicionamos esse comando para garantir que a branch main está atualizada
     git merge workspace-dataform-teste
     git push origin main
-# Passo 4: Enviar scripts para o Dataform
+
+# Passo 5: Enviar scripts para o Dataform
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [
     'dataform', 'install',
-    '--repository="repositorio-dataform"',
-    '--workspace="workspace-dataform"',
-    '--location="us-central1"'
+    '--repository="repositorio-producao"',
+    '--workspace="workspace-dataform-producao"',
+    '--location="southamerica-east1"'
   ]
 
 substitutions:
   _COMMIT_AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
 timeout: '1200s'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  logs_bucket: "gs://cloud-build-logs-bucket1"  # Substitua pelo nome do seu bucket de logs
