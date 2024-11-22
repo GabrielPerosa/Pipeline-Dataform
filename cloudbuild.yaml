@@ -49,5 +49,4 @@ substitutions:
 timeout: '1200s'
 
 options:
-  logging: CLOUD_LOGGING_ONLY
-  logs_bucket: "gs://cloud-build-logs-bucket1"  # Substitua pelo nome do seu bucket de logs
+  logging: CLOUD_LOGGING_ONLY  # Configuração de log para Cloud Logging
