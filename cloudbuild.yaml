@@ -11,43 +11,51 @@ steps:
         git fetch origin  # Faz o fetch para garantir que todas as branches sejam baixadas
         git checkout main  # Tenta fazer o checkout na branch main
 
-# Passo 2: Instalar dependências do SQLFluff
-- name: 'python:3.9'
-  script: |
-    pip install --no-cache-dir sqlfluff
+  # Passo 2: Instalar dependências do SQLFluff
+  - name: 'python:3.9'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install --no-cache-dir sqlfluff
 
-# Passo 3: Verificar qualidade dos scripts SQL
-- name: 'python:3.9'
-  script: |
-    # Identificar o email do autor do commit
-    COMMIT_AUTHOR_EMAIL="gabrielperosa493@gmail.com"  # E-mail fixo para testes
-    # Executar o lint
-    sqlfluff lint definitions/ > lint-results.txt
-    # Verificar o resultado do lint
-    if grep -q "L:  " lint-results.txt; then
-      echo "Testes SQL falharam. Notificando erro por email."
-      echo "SQL Quality Check Failed. Review the errors in lint-results.txt." | sendmail -v $COMMIT_AUTHOR_EMAIL
-      exit 1
-    else
-      echo "SQL Quality Check Passed."
-    fi
+  # Passo 3: Verificar qualidade dos scripts SQL
+  - name: 'python:3.9'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Identificar o email do autor do commit
+        COMMIT_AUTHOR_EMAIL="gabrielperosa493@gmail.com"  # E-mail fixo para testes
+        # Executar o lint
+        sqlfluff lint definitions/ > lint-results.txt
+        # Verificar o resultado do lint
+        if grep -q "L:  " lint-results.txt; then
+          echo "Testes SQL falharam. Notificando erro por email."
+          echo "SQL Quality Check Failed. Review the errors in lint-results.txt." | mail -s "SQL Lint Failure" $COMMIT_AUTHOR_EMAIL
+          exit 1
+        else
+          echo "SQL Quality Check Passed."
+        fi
 
+  # Passo 4: Mesclar na branch main caso os testes passem
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git checkout main
+        git merge workspace-dataform-teste
+        git push origin main
 
-# Passo 4: Mesclar na branch main caso os testes passem
-- name: 'gcr.io/cloud-builders/git'
-  script: |
-    git checkout main
-    git merge workspace-dataform-teste
-    git push origin main
-
-# Passo 5: Enviar scripts para o Dataform
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: [
-    'dataform', 'install',
-    '--repository="repositorio-producao"',
-    '--workspace="workspace-dataform-producao"',
-    '--location="southamerica-east1"'
-  ]
+  # Passo 5: Enviar scripts para o Dataform
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataform'
+      - 'install'
+      - '--repository="repositorio-producao"'
+      - '--workspace="workspace-dataform-producao"'
+      - '--location="southamerica-east1"'
 
 substitutions:
   _COMMIT_AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
