@@ -1,15 +1,11 @@
 steps:
-# Passo 1: Clonar o repositório (caso necessário)
-- name: 'gcr.io/cloud-builders/git'
-  args: ['clone', 'https://github.com/GabrielPerosa/Pipeline-Dataform.git']
-
-# Passo 2: Instalar dependências do SQLFluff
+# Passo 1: Instalar dependências do SQLFluff
 - name: 'python:3.9'
   entrypoint: 'bash'
   script: |
     pip install --no-cache-dir sqlfluff
 
-# Passo 3: Verificar qualidade dos scripts SQL
+# Passo 2: Verificar qualidade dos scripts SQL
 - name: 'python:3.9'
   entrypoint: 'bash'
   script: |
@@ -26,7 +22,7 @@ steps:
       echo "SQL Quality Check Passed."
     fi
 
-# Passo 4: Mesclar na branch main caso os testes passem
+# Passo 3: Mesclar na branch main caso os testes passem
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   script: |
@@ -34,7 +30,7 @@ steps:
     git merge workspace-dataform-teste
     git push origin main
 
-# Passo 5: Enviar scripts para o Dataform
+# Passo 4: Enviar scripts para o Dataform
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [
     'dataform', 'install',
