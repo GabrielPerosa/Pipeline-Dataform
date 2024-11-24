@@ -5,11 +5,12 @@ steps:
     args:
       - '-c'
       - |
-        git clone https://github.com/GabrielPerosa/Pipeline-Dataform.git
+        echo "Clonando o repositório..."
+        git clone https://github.com/GabrielPerosa/Pipeline-Dataform.git || { echo "Falha ao clonar o repositório"; exit 1; }
         cd Pipeline-Dataform
         git branch -a  # Verifica todas as branches do repositório
         git fetch origin  # Faz o fetch para garantir que todas as branches sejam baixadas
-        git checkout main  # Tenta fazer o checkout na branch main
+        git checkout main || { echo "Falha ao fazer checkout na branch main"; exit 1; }
 
   # Passo 2: Instalar dependências do SQLFluff
   - name: 'python:3.9'
@@ -25,14 +26,17 @@ steps:
     args:
       - '-c'
       - |
+        # Identificar o email do autor do commit
+        COMMIT_AUTHOR_EMAIL="${_AUTHOR_EMAIL}"  # Substituição correta
         # Executar o lint
         sqlfluff lint definitions/ > lint-results.txt
         # Verificar o resultado do lint
         if grep -q "L:  " lint-results.txt; then
-          echo "Testes SQL falharam. Verifique os erros em lint-results.txt."
+          echo "Testes SQL falharam. Notificando erro por email."
+          echo "SQL Quality Check Failed. Review the errors in lint-results.txt." | mail -s "SQL Lint Failure" $COMMIT_AUTHOR_EMAIL
           exit 1
         else
-          echo "Testes SQL passaram."
+          echo "SQL Quality Check Passed."
         fi
 
   # Passo 4: Mesclar na branch main caso os testes passem
@@ -45,15 +49,14 @@ steps:
         git merge workspace-dataform-teste
         git push origin main
 
-  # Passo 5: Instalar Dataform e executar
-  - name: 'gcr.io/cloud-builders/npm'
-    entrypoint: 'bash'
+  # Passo 5: Enviar scripts para o Dataform
+  - name: 'gcr.io/cloud-builders/gcloud'
     args:
-      - '-c'
-      - |
-        cd Pipeline-Dataform  # Certifique-se de estar no diretório correto
-        npm install -g @dataform/cli  # Instalar o Dataform globalmente
-        dataform run  # Executar as transformações de dados
+      - 'dataform'
+      - 'install'
+      - '--repository="repositorio-producao"'
+      - '--workspace="workspace-dataform-producao"'
+      - '--location="southamerica-east1"'
 
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
