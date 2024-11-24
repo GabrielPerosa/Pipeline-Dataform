@@ -25,8 +25,6 @@ steps:
     args:
       - '-c'
       - |
-        # Identificar o email do autor do commit
-        COMMIT_AUTHOR_EMAIL="${_AUTHOR_EMAIL}"  # Substituição correta
         # Executar o lint
         sqlfluff lint definitions/ > lint-results.txt
         # Verificar o resultado do lint
@@ -57,9 +55,6 @@ steps:
         cd Pipeline-Dataform  # Certifique-se de estar no diretório correto
         npm install -g @dataform/cli  # Instalar o Dataform globalmente
         dataform run  # Executar as transformações de dados
-
-substitutions:
-  _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
 timeout: '1200s'
 
