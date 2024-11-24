@@ -43,6 +43,14 @@ steps:
       - '--repository="repositorio-producao"'
       - '--workspace="workspace-dataform-producao"'
       - '--location="southamerica-east1"'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Verificando se o gcloud está configurado corretamente..."
+        gcloud --version
+        echo "Executando Dataform..."
+        dataform install --repository="repositorio-producao" --workspace="workspace-dataform-producao" --location="southamerica-east1" || { echo "Falha ao executar o Dataform"; exit 1; }
 
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
