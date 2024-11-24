@@ -54,6 +54,16 @@ steps:
         echo "Executando Dataform..."
         dataform install --repository="repositorio-producao" --workspace="workspace-dataform-producao" --location="southamerica-east1" || { echo "Falha ao executar o Dataform"; exit 1; }
 
+        # Comando de depuração adicional
+        echo "Verificando informações de autenticação do GCP..."
+        gcloud auth print-access-token || { echo "Falha ao obter token de acesso"; exit 1; }
+
+        # Verificando a conta configurada no gcloud
+        gcloud config get-value account || { echo "Conta não configurada corretamente"; exit 1; }
+
+        echo "Informações do projeto:"
+        gcloud config get-value project || { echo "Projeto não configurado corretamente"; exit 1; }1" || { echo "Falha ao executar o Dataform"; exit 1; }
+
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
