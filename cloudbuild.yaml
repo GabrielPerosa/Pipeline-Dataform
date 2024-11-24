@@ -21,20 +21,19 @@ steps:
 
   # Passo 3: Verificar qualidade dos scripts SQL
   - name: 'python:3.9'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      # Executar o lint
-      sqlfluff lint definitions/ > lint-results.txt
-      # Verificar o resultado do lint
-      if grep -q "L:  " lint-results.txt; then
-        echo "Testes SQL falharam. Verifique os erros em lint-results.txt."
-        exit 1
-      else
-        echo "Testes SQL passaram."
-      fi
-
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Executar o lint
+        sqlfluff lint definitions/ > lint-results.txt
+        # Verificar o resultado do lint
+        if grep -q "L:  " lint-results.txt; then
+          echo "Testes SQL falharam. Verifique os erros em lint-results.txt."
+          exit 1
+        else
+          echo "Testes SQL passaram."
+        fi
 
   # Passo 4: Mesclar na branch main caso os testes passem
   - name: 'gcr.io/cloud-builders/git'
@@ -55,6 +54,9 @@ steps:
         cd Pipeline-Dataform  # Certifique-se de estar no diretório correto
         npm install -g @dataform/cli  # Instalar o Dataform globalmente
         dataform run  # Executar as transformações de dados
+
+substitutions:
+  _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
 timeout: '1200s'
 
