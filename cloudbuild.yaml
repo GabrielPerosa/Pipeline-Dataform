@@ -37,12 +37,6 @@ steps:
 
   # Passo 4: Enviar scripts para o Dataform
   - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - 'dataform'
-      - 'install'
-      - '--repository="repositorio-producao"'
-      - '--workspace="workspace-dataform-producao"'
-      - '--location="southamerica-east1"'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -52,9 +46,11 @@ steps:
         gcloud config list || { echo "Falha ao listar configurações"; exit 1; }
         gcloud --version
         echo "Executando Dataform..."
+        
+        # Adicionando mais detalhes na execução do Dataform
         dataform install --repository="repositorio-producao" --workspace="workspace-dataform-producao" --location="southamerica-east1" || { echo "Falha ao executar o Dataform"; exit 1; }
 
-        # Comando de depuração adicional
+        # Exibir informações de depuração detalhadas
         echo "Verificando informações de autenticação do GCP..."
         gcloud auth print-access-token || { echo "Falha ao obter token de acesso"; exit 1; }
 
@@ -62,8 +58,11 @@ steps:
         gcloud config get-value account || { echo "Conta não configurada corretamente"; exit 1; }
 
         echo "Informações do projeto:"
-        gcloud config get-value project || { echo "Projeto não configurado corretamente"; exit 1; }1" || { echo "Falha ao executar o Dataform"; exit 1; }
-
+        gcloud config get-value project || { echo "Projeto não configurado corretamente"; exit 1; }
+        
+        # Listando informações de todos os projetos para verificar o contexto
+        gcloud projects list || { echo "Falha ao listar projetos"; exit 1; }
+        
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
