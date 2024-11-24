@@ -47,7 +47,9 @@ steps:
     args:
       - '-c'
       - |
-        echo "Verificando se o gcloud está configurado corretamente..."
+        echo "Verificando configuração do gcloud..."
+        gcloud auth list || { echo "Falha ao verificar autenticação"; exit 1; }
+        gcloud config list || { echo "Falha ao listar configurações"; exit 1; }
         gcloud --version
         echo "Executando Dataform..."
         dataform install --repository="repositorio-producao" --workspace="workspace-dataform-producao" --location="southamerica-east1" || { echo "Falha ao executar o Dataform"; exit 1; }
