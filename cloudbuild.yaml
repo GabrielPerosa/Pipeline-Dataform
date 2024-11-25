@@ -35,7 +35,7 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Instalar Node.js e npm, depois Dataform
+  # Passo 4: Instalar Node.js, npm, Dataform e limpar node_modules
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -51,6 +51,10 @@ steps:
         curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao instalar Node.js"; exit 1; }
         apt-get install -y nodejs || { echo "Falha ao instalar npm"; exit 1; }
 
+        # Remover a pasta node_modules se ela existir
+        echo "Removendo a pasta node_modules, se existir..."
+        rm -rf /workspace/node_modules || { echo "Falha ao remover node_modules"; exit 1; }
+
         echo "Instalando o Dataform..."
         
         # Instalar o Dataform globalmente
@@ -59,7 +63,6 @@ steps:
         echo "Executando Dataform..."
         
         # Comando atualizado para execução do Dataform
-        # O comando correto pode ser `dataform run`, sem os parâmetros `repository`, `workspace`, `location`
         dataform run || { echo "Falha ao executar o Dataform"; exit 1; }
 
         # Exibir informações de depuração detalhadas
