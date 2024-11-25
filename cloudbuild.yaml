@@ -35,7 +35,31 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Instalar Node.js, npm, Dataform e configurar credenciais
+  # Passo 4: Recuperar credenciais do Secret Manager
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Recuperando credenciais do Secret Manager..."
+        gcloud secrets versions access latest --secret=dataform-credentials > /workspace/.df-credentials.json
+        echo "Credenciais salvas em /workspace/.df-credentials.json"
+      
+  # Passo 5: Verificar se o arquivo de credenciais foi recuperado
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Verificando se o arquivo de credenciais foi recuperado..."
+        if [ -f "/workspace/.df-credentials.json" ]; then
+          echo "Arquivo de credenciais encontrado."
+        else
+          echo "Erro: Arquivo de credenciais não encontrado."
+          exit 1
+        fi
+
+  # Passo 6: Instalar Node.js, npm, Dataform e executar
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -45,24 +69,28 @@ steps:
         gcloud auth list || { echo "Falha ao verificar autenticação"; exit 1; }
         gcloud config list || { echo "Falha ao listar configurações"; exit 1; }
         gcloud --version
-
         echo "Instalando Node.js e npm..."
-        curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao configurar Node.js"; exit 1; }
-        apt-get install -y nodejs || { echo "Falha ao instalar Node.js"; exit 1; }
+        
+        # Instalar o Node.js e npm
+        curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao instalar Node.js"; exit 1; }
+        apt-get install -y nodejs || { echo "Falha ao instalar npm"; exit 1; }
 
+        # Remover a pasta node_modules se ela existir
         echo "Removendo a pasta node_modules, se existir..."
         rm -rf /workspace/node_modules || { echo "Falha ao remover node_modules"; exit 1; }
 
         echo "Instalando o Dataform..."
+        
+        # Instalar o Dataform globalmente
         npm install -g @dataform/cli || { echo "Falha ao instalar o Dataform"; exit 1; }
 
-        echo "Obtendo arquivo de credenciais..."
-        gcloud secrets versions access latest --secret=dataform-credentials > /workspace/.df-credentials.json || { echo "Falha ao acessar o segredo"; exit 1; }
+        echo "Autenticando com as credenciais..."
+        gcloud auth activate-service-account --key-file=/workspace/.df-credentials.json || { echo "Falha ao autenticar com as credenciais"; exit 1; }
 
         echo "Executando Dataform..."
         dataform run || { echo "Falha ao executar o Dataform"; exit 1; }
 
-        echo "Finalizado com sucesso!"
+        echo "Pipeline concluído com sucesso."
 
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
