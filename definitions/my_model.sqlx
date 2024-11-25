@@ -1,0 +1,10 @@
+config {
+  type: "view",
+  schema: "dataform_dataset",
+  tags: ["example"]
+}
+
+-- Este é o comentário válido na consulta SQL abaixo
+select *
+from my_source_table
+where created_at > '2024-01-01'
