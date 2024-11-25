@@ -35,7 +35,7 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Instalar Node.js, npm, Dataform e limpar node_modules
+  # Passo 4: Instalar Node.js, npm, Dataform e configurar credenciais
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -45,39 +45,25 @@ steps:
         gcloud auth list || { echo "Falha ao verificar autenticação"; exit 1; }
         gcloud config list || { echo "Falha ao listar configurações"; exit 1; }
         gcloud --version
-        echo "Instalando Node.js e npm..."
-        
-        # Instalar o Node.js e npm
-        curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao instalar Node.js"; exit 1; }
-        apt-get install -y nodejs || { echo "Falha ao instalar npm"; exit 1; }
 
-        # Remover a pasta node_modules se ela existir
+        echo "Instalando Node.js e npm..."
+        curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao configurar Node.js"; exit 1; }
+        apt-get install -y nodejs || { echo "Falha ao instalar Node.js"; exit 1; }
+
         echo "Removendo a pasta node_modules, se existir..."
         rm -rf /workspace/node_modules || { echo "Falha ao remover node_modules"; exit 1; }
 
         echo "Instalando o Dataform..."
-        
-        # Instalar o Dataform globalmente
         npm install -g @dataform/cli || { echo "Falha ao instalar o Dataform"; exit 1; }
 
+        echo "Obtendo arquivo de credenciais..."
+        gcloud secrets versions access latest --secret=dataform-credentials > /workspace/.df-credentials.json || { echo "Falha ao acessar o segredo"; exit 1; }
+
         echo "Executando Dataform..."
-        
-        # Comando atualizado para execução do Dataform
         dataform run || { echo "Falha ao executar o Dataform"; exit 1; }
 
-        # Exibir informações de depuração detalhadas
-        echo "Verificando informações de autenticação do GCP..."
-        gcloud auth print-access-token || { echo "Falha ao obter token de acesso"; exit 1; }
+        echo "Finalizado com sucesso!"
 
-        # Verificando a conta configurada no gcloud
-        gcloud config get-value account || { echo "Conta não configurada corretamente"; exit 1; }
-
-        echo "Informações do projeto:"
-        gcloud config get-value project || { echo "Projeto não configurado corretamente"; exit 1; }
-
-        # Listando informações de todos os projetos para verificar o contexto
-        gcloud projects list || { echo "Falha ao listar projetos"; exit 1; }
-        
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
 
