@@ -35,7 +35,7 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Instalar o Dataform e executar
+  # Passo 4: Instalar Node.js e npm, depois Dataform
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -45,6 +45,12 @@ steps:
         gcloud auth list || { echo "Falha ao verificar autenticação"; exit 1; }
         gcloud config list || { echo "Falha ao listar configurações"; exit 1; }
         gcloud --version
+        echo "Instalando Node.js e npm..."
+        
+        # Instalar o Node.js e npm
+        curl -sL https://deb.nodesource.com/setup_16.x | bash - || { echo "Falha ao instalar Node.js"; exit 1; }
+        apt-get install -y nodejs || { echo "Falha ao instalar npm"; exit 1; }
+
         echo "Instalando o Dataform..."
         
         # Instalar o Dataform globalmente
