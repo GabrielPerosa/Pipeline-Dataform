@@ -1,6 +1,0 @@
-{
-  "warehouse": "bigquery",
-  "defaultDatabase": "seu-projeto-id",
-  "defaultSchema": "seu-dataset-padrao",
-  "assertionSchema": "seu-dataset-padrao_assertions"
-}
