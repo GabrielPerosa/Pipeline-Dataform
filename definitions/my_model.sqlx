@@ -1,1 +1,7 @@
-SELECT 1 AS simple_value;
+config {
+    type: "view",
+    schema: "dataform_dataset"
+}
+
+SELECT
+  1 AS simple_value
