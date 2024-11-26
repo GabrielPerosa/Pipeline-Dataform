@@ -3,4 +3,4 @@ config {
 }
 
 SELECT
-  1 AS simple_value
+  1 AS simple_value;
