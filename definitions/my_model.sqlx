@@ -4,4 +4,4 @@ config {
 }
 
 SELECT
-  Gabriel AS simple_value
+  'Gabriel' AS simple_value
