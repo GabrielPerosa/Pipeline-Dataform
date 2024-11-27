@@ -8,8 +8,9 @@ steps:
         echo "Clonando o repositório do Dataform..."
         git clone https://github.com/GabrielPerosa/repositorio-producao.git || { echo "Falha ao clonar o repositório"; exit 1; }
         cd repositorio-producao
-        git fetch origin
-        git checkout workspace-dataform-producao || { echo "Falha ao fazer checkout na branch workspace-dataform-producao"; exit 1; }
+        echo "Buscando a branch workspace-dataform-teste..."
+        git fetch origin workspace-dataform-teste || { echo "Falha ao buscar a branch workspace-dataform-teste"; exit 1; }
+        git checkout workspace-dataform-teste || { echo "Falha ao fazer checkout na branch workspace-dataform-teste"; exit 1; }
 
   # Passo 2: Instalar dependências do SQLFluff
   - name: 'python:3.9'
@@ -35,18 +36,18 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Commit e push para o repositório de produção no Dataform
+  # Passo 4: Clonar o repositório de produção e extrair a branch correta
   - name: 'gcr.io/cloud-builders/git'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Fazendo commit e push para o repositório de produção no Dataform..."
-        git config user.name "Gabriel Perosa"
-        git config user.email "gabrielperosa493@gmail.com"
-        git add .
-        git commit -m "Atualizando arquivos após testes SQL passarem"
-        git push origin workspace-dataform-producao
+        echo "Clonando o repositório do Dataform..."
+        git clone https://github.com/GabrielPerosa/repositorio-producao.git || { echo "Falha ao clonar o repositório"; exit 1; }
+        cd repositorio-producao
+        echo "Buscando a branch workspace-dataform-teste..."
+        git fetch origin workspace-dataform-teste || { echo "Falha ao buscar a branch workspace-dataform-teste"; exit 1; }
+        git checkout workspace-dataform-teste || { echo "Falha ao fazer checkout na branch workspace-dataform-teste"; exit 1; }
 
   # Passo 5: Recuperar credenciais do Secret Manager
   - name: 'gcr.io/cloud-builders/gcloud'
