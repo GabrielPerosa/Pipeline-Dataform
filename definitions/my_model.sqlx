@@ -5,3 +5,7 @@ config {
 
 SELECT
   'Gabriel' AS simple_value
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/heads/workspace-dataform-teste
