@@ -1,11 +1,8 @@
 config {
-  type: "incremental",
+  type: "table",
   schema: "dataform_dataset"
 }
 
 SELECT
   'Gabriel' AS simple_value
-<<<<<<< HEAD
-=======
 
->>>>>>> refs/heads/workspace-dataform-teste

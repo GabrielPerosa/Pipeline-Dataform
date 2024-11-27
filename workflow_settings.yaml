@@ -1,5 +1,4 @@
 defaultProject: terraform-438819
 defaultLocation: southamerica-east1
 defaultDataset: dataform_dataset
-defaultAssertionDataset: dataform_dataset_assertions
 dataformCoreVersion: 3.0.8
