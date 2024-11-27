@@ -1,15 +1,15 @@
 steps:
-  # Passo 1: Clonar o repositório
+  # Passo 1: Clonar o repositório de produção no Dataform
   - name: 'gcr.io/cloud-builders/git'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Clonando o repositório..."
-        git clone https://github.com/GabrielPerosa/Pipeline-Dataform.git || { echo "Falha ao clonar o repositório"; exit 1; }
-        cd Pipeline-Dataform
-        git fetch origin  # Faz o fetch para garantir que todas as branches sejam baixadas
-        git checkout workspace-dataform-teste || { echo "Falha ao fazer checkout na branch workspace-dataform-teste"; exit 1; }
+        echo "Clonando o repositório do Dataform..."
+        git clone https://github.com/GabrielPerosa/repositorio-producao.git || { echo "Falha ao clonar o repositório"; exit 1; }
+        cd repositorio-producao
+        git fetch origin
+        git checkout workspace-dataform-producao || { echo "Falha ao fazer checkout na branch workspace-dataform-producao"; exit 1; }
 
   # Passo 2: Instalar dependências do SQLFluff
   - name: 'python:3.9'
@@ -20,7 +20,7 @@ steps:
         echo "Instalando dependências do SQLFluff..."
         pip install --no-cache-dir sqlfluff
 
-  # Passo 3: Verificar qualidade dos scripts SQL
+  # Passo 3: Verificar qualidade dos arquivos SQL
   - name: 'python:3.9'
     entrypoint: 'bash'
     args:
@@ -35,7 +35,20 @@ steps:
           echo "Testes SQL passaram."
         fi
 
-  # Passo 4: Recuperar credenciais do Secret Manager
+  # Passo 4: Commit e push para o repositório de produção no Dataform
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Fazendo commit e push para o repositório de produção no Dataform..."
+        git config user.name "Gabriel Perosa"
+        git config user.email "gabrielperosa493@gmail.com"
+        git add .
+        git commit -m "Atualizando arquivos após testes SQL passarem"
+        git push origin workspace-dataform-producao
+
+  # Passo 5: Recuperar credenciais do Secret Manager
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -44,8 +57,8 @@ steps:
         echo "Recuperando credenciais do Secret Manager..."
         gcloud secrets versions access latest --secret=dataform-credentials > /workspace/.df-credentials.json
         echo "Credenciais salvas em /workspace/.df-credentials.json"
-      
-  # Passo 5: Verificar se o arquivo de credenciais foi recuperado
+
+  # Passo 6: Verificar se o arquivo de credenciais foi recuperado
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -59,7 +72,7 @@ steps:
           exit 1
         fi
 
-  # Passo 6: Instalar Node.js, npm, Dataform e executar
+  # Passo 7: Instalar Node.js, npm, Dataform e executar
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -68,25 +81,12 @@ steps:
         echo "Instalando Node.js e npm..."
         curl -sL https://deb.nodesource.com/setup_16.x | bash -
         apt-get install -y nodejs
-
-        echo "Limpar cache do NPM..."
-        npm cache clean --force
-
-        echo "Instalando o Dataform globalmente..."
-        npm install -g @dataform/cli || { echo "Falha ao instalar o Dataform"; exit 1; }
-
+        echo "Instalando o Dataform..."
+        npm install -g @dataform/cli
         echo "Autenticando com as credenciais..."
-        gcloud auth activate-service-account --key-file=/workspace/.df-credentials.json || { echo "Falha ao autenticar"; exit 1; }
-
-        echo "Compilando o projeto Dataform..."
-        dataform compile || { echo "Erro durante a compilação"; exit 1; }
-
-        echo "Executando o Dataform..."
-        dataform run || { echo "Erro ao executar o Dataform"; exit 1; }
-
-        echo "Pipeline concluído com sucesso."
-
-
+        gcloud auth activate-service-account --key-file=/workspace/.df-credentials.json
+        echo "Executando Dataform..."
+        dataform push || { echo "Falha ao executar o Dataform"; exit 1; }
 
 substitutions:
   _AUTHOR_EMAIL: 'gabrielperosa493@gmail.com'
