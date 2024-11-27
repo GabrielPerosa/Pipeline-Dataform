@@ -59,7 +59,7 @@ steps:
           exit 1
         fi
 
-    # Passo 6: Instalar Node.js, npm, Dataform e executar
+  # Passo 6: Instalar Node.js, npm, Dataform e executar
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -69,11 +69,14 @@ steps:
         curl -sL https://deb.nodesource.com/setup_16.x | bash -
         apt-get install -y nodejs
 
-        echo "Instalando as dependências do Dataform..."
-        npm install || { echo "Falha ao instalar as dependências"; exit 1; }
+        echo "Limpar cache do NPM..."
+        npm cache clean --force
+
+        echo "Instalando o Dataform globalmente..."
+        npm install -g @dataform/cli || { echo "Falha ao instalar o Dataform"; exit 1; }
 
         echo "Autenticando com as credenciais..."
-        gcloud auth activate-service-account --key-file=/includes/.df-credentials.json || { echo "Falha ao autenticar"; exit 1; }
+        gcloud auth activate-service-account --key-file=/workspace/.df-credentials.json || { echo "Falha ao autenticar"; exit 1; }
 
         echo "Compilando o projeto Dataform..."
         dataform compile || { echo "Erro durante a compilação"; exit 1; }
@@ -82,6 +85,7 @@ steps:
         dataform run || { echo "Erro ao executar o Dataform"; exit 1; }
 
         echo "Pipeline concluído com sucesso."
+
 
 
 substitutions:
