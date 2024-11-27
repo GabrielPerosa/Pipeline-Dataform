@@ -1,5 +1,5 @@
 config {
-  type: "view",
+  type: "incremental",
   schema: "dataform_dataset"
 }
 
