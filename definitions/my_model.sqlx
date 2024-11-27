@@ -1,7 +1,8 @@
 config {
-    type: "view",
-    schema: "dataform_dataset"
+  type: "view",
+  schema: "dataform_dataset"
 }
 
 SELECT
-  1 AS simple_value
+  'Gabriel' AS simple_value
+
