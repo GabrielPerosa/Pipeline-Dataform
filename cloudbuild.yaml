@@ -6,8 +6,8 @@ steps:
       - '-c'
       - |
         echo "Clonando o repositório do Dataform..."
-        git clone https://github.com/GabrielPerosa/repositorio-producao.git || { echo "Falha ao clonar o repositório"; exit 1; }
-        cd repositorio-producao
+        git clone https://github.com/GabrielPerosa/Pipeline-Dataform.git || { echo "Falha ao clonar o repositório"; exit 1; }
+        cd Pipeline-Dataform/
         echo "Buscando a branch workspace-dataform-teste..."
         git fetch origin workspace-dataform-teste || { echo "Falha ao buscar a branch workspace-dataform-teste"; exit 1; }
         git checkout workspace-dataform-teste || { echo "Falha ao fazer checkout na branch workspace-dataform-teste"; exit 1; }
