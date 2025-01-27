@@ -1,2 +1,4 @@
-node_modules/
-test
+./dataform/__pycache__/*
+./dataform/env/*
+./dataform/.env
+
