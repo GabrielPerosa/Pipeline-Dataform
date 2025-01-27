@@ -1,8 +1,0 @@
-config {
-  type: "table",
-  schema: "dataform_dataset"
-}
-
-SELECT
-  'Gabriel' AS simple_value
-
