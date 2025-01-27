@@ -37,17 +37,6 @@ steps:
         fi
 
   # Passo 4: Clonar o repositório de produção e extrair a branch correta
-  - name: 'gcr.io/cloud-builders/git'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Clonando o repositório do Dataform..."
-        git clone https://github.com/GabrielPerosa/repositorio-producao.git || { echo "Falha ao clonar o repositório"; exit 1; }
-        cd repositorio-producao
-        echo "Buscando a branch workspace-dataform-teste..."
-        git fetch origin workspace-dataform-teste || { echo "Falha ao buscar a branch workspace-dataform-teste"; exit 1; }
-        git checkout workspace-dataform-teste || { echo "Falha ao fazer checkout na branch workspace-dataform-teste"; exit 1; }
 
   # Passo 5: Recuperar credenciais do Secret Manager
   - name: 'gcr.io/cloud-builders/gcloud'
