@@ -1,4 +1,4 @@
 dataform/.env
 dataform/__pycache__/
 dataform/env/
-secret-key.json
+secret_key.json

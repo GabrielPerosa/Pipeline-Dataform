@@ -1,5 +1,5 @@
 provider "google" {
-  credentials = file("secret-key.json")
+  credentials = file("secret_key.json")
   project     = "integracaohomologado"
   region      = "southamerica-east1"
 }  
