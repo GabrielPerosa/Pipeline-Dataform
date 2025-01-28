@@ -3,6 +3,13 @@ import json
 from google.auth import credentials
 from google.oauth2 import service_account
 
+'''
+A função 'acess_secret' tem o objetivo de obter a secret armazenada no Secret Manager. 
+Passamos a número do projeto e o id da secret para obtermnos a secret.
+EX:
+    service_account_json = access_secret(project_number, secret_id)
+'''
+
 def access_secret(project_number, secret_id):
     client = secretmanager.SecretManagerServiceClient()
     secret_name = f"projects/{project_number}/secrets/{secret_id}/versions/latest"
@@ -10,7 +17,15 @@ def access_secret(project_number, secret_id):
     secret_payload = response.payload.data.decode("UTF-8")
     return secret_payload
 
-def getAuth(project_number, secret_id):
+
+'''
+A função 'get_auth' tem o objetivo de obter a autenticação para usarmos a API Google. 
+Para ela passamos número do projeto e o id da secret para obter a secret por meio de 'access_secret' e depois realizar a autenticação.
+EX:
+    credentials = get_auth(project_number, secret)
+'''
+
+def get_auth(project_number, secret_id):
     try:
         service_account_json = access_secret(project_number, secret_id)
 
