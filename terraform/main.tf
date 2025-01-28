@@ -1,6 +1,6 @@
 provider "google" {
   credentials = file("secret-key.json")
-  project     = "<integracaohomologado>"
+  project     = "integracaohomologado"
   region      = "southamerica-east1"
 }  
 resource "google_storage_bucket" "auto-expire" {
