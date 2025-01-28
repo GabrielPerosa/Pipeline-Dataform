@@ -47,35 +47,8 @@ steps:
     args:
       - '-c'
       - |
-        # Instalar dependências
-        pip install google-cloud-secret-manager google-auth google-api-python-client
+        cd dataform/ && pip install -r requirements.txt
 
-        # Autenticar com a conta de serviço usando o Secret Manager
-        from google.cloud import secretmanager
-        import google.auth
-        from googleapiclient.discovery import build
+        python dataform.py
 
-        # Inicializa o cliente do Secret Manager
-        client = secretmanager.SecretManagerServiceClient()
-
-        # Nome do seu segredo no Secret Manager
-        secret_name = "projects/integracaohomologado/secrets/pipeline_dataform/versions/latest"
-        
-        # Acessa o segredo
-        response = client.access_secret_version(name=secret_name)
-        secret_value = response.payload.data.decode("UTF-8")
-        print(f"Secret value: {secret_value}")  # Aqui você pode usar esse segredo para autenticação ou outras necessidades
-
-        # Autenticação com as credenciais da conta de serviço
-        credentials = google.auth.load_credentials_from_file(secret_value)[0]  # Usando a chave para autenticação
-        project = "integracaohomologado"  # O ID do seu projeto
-
-        # Conectar à API do Dataform
-        dataform = build("dataform", "v1beta1", credentials=credentials)
-
-        # Sincronizar o repositório Dataform
-        request = dataform.projects().repositories().sync(
-            name="projects/integracaohomologado/repositories/scripts_producao"
-        )
-        response = request.execute()
-        print("Dataform Pull Response:", response)
+        print("Sucesso!")
