@@ -1,2 +1,1 @@
-OIIOO
 # Pipeline-Dataform-Cloudbuild
