@@ -12,20 +12,18 @@ steps:
         echo "Branch name is: $BRANCH_NAME"
 
   # 2. Verificar e mover os arquivos necessários
-  - id: 'prepare files'
+  - id: 'check secret key'
     name: 'alpine'
     args:
     - sh
     - '-c'
     - |
-        echo "Preparando os arquivos Terraform..."
-        if [ ! -f main.tf ]; then
-          echo "Arquivo main.tf não encontrado! Verifique a configuração."
+        echo "Verificando se o arquivo secret_key.json está presente..."
+        if [ ! -f secret_key.json ]; then
+          echo "Arquivo secret_key.json não encontrado no diretório atual!"
           exit 1
-        fi
-        if [ ! -f secret-key.json ]; then
-          echo "Arquivo secret-key.json não encontrado! Verifique a configuração."
-          exit 1
+        else
+          echo "Arquivo secret_key.json encontrado."
         fi
 
   # 3. Inicializar o Terraform

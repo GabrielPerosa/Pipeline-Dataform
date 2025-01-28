@@ -1,8 +1,8 @@
 provider "google" {
-  credentials = file("secret_key.json")
+  credentials = file("/workspace/secret_key.json")
   project     = "integracaohomologado"
   region      = "southamerica-east1"
-}  
+}
 resource "google_storage_bucket" "auto-expire" {
   name          = "tt-cicdbuild-bucket-unique-20250124"
   location      = "southamerica-east1"
