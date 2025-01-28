@@ -11,13 +11,13 @@ steps:
   # Passo 3: Mesclar com outra branch do GitHub
   - name: 'gcr.io/cloud-builders/git'
     args:
-      - 'config --global user.name cloud-build'
+      - 'config --global user.name cloud-build &&'
 
-      - 'config --global user.email cloud-build@google.com'
+      - 'config --global user.email cloud-build@google.com &&'
 
-      - 'fetch'
+      - 'fetch &&'
 
-      - 'checkout staging'
+      - 'checkout staging &&'
       - 'merge'
       - 'origin production'
 
