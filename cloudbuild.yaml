@@ -2,7 +2,7 @@ substitutions:
   _BRANCH_NAME: 'feature/cloudbuild'
 
 steps:
-  # 1. Step para exibir o nome da branch
+  # 1. Exibir o nome da branch
   - id: 'branch name'
     name: 'alpine'
     args:
@@ -11,26 +11,43 @@ steps:
     - |
         echo "Branch name is: $BRANCH_NAME"
 
-  # 2. Step para inicializar o Terraform
+  # 2. Verificar e mover os arquivos necessários
+  - id: 'prepare files'
+    name: 'alpine'
+    args:
+    - sh
+    - '-c'
+    - |
+        echo "Preparando os arquivos Terraform..."
+        if [ ! -f main.tf ]; then
+          echo "Arquivo main.tf não encontrado! Verifique a configuração."
+          exit 1
+        fi
+        if [ ! -f secret-key.json ]; then
+          echo "Arquivo secret-key.json não encontrado! Verifique a configuração."
+          exit 1
+        fi
+
+  # 3. Inicializar o Terraform
   - id: 'tf init'
     name: 'hashicorp/terraform:1.0.0'
     args:
     - 'init'
 
-  # 3. Step para executar o Terraform plan
+  # 4. Executar o Terraform plan
   - id: 'tf plan'
     name: 'hashicorp/terraform:1.0.0'
     args:
-    - plan
+    - 'plan'
 
-  # 4. Step para aplicar mudanças no Terraform
+  # 5. Aplicar mudanças no Terraform
   - id: 'tf apply'
     name: 'hashicorp/terraform:1.0.0'
     args:
     - 'apply'
     - '--auto-approve'
 
-  # 5. Step para fazer commit e merge automático (somente se a branch for feature/docs)
+  # 6. Fazer commit e merge automático
   - id: 'auto-merge'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -45,8 +62,8 @@ steps:
           git merge "$BRANCH_NAME" --no-ff -m "Auto-merge from $BRANCH_NAME to develop"
           git push origin develop
           git pull
-          echo "Sucess"
-          echo "All commands was does, auto-merge was done."
+          echo "Success"
+          echo "All commands were executed, auto-merge was done."
         else
           echo "Branch is not 'feature/cloudbuild', skipping auto-merge."
         fi
