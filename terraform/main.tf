@@ -1,4 +1,9 @@
- resource "google_storage_bucket" "auto-expire" {
+provider "google" {
+  credentials = file("secret-key.json")
+  project     = "<integracaohomologado>"
+  region      = "southamerica-east1"
+}  
+resource "google_storage_bucket" "auto-expire" {
   name          = "tt-cicdbuild-bucket-unique-20250124"
   location      = "southamerica-east1"
   project       = "integracaohomologado"
