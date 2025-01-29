@@ -3,23 +3,24 @@ from googleapiclient.discovery import build
 from google.cloud.dataform_v1beta1 import types
 from files import load_files, get_content
 from auth import get_auth
-from dotenv import dotenv_values
+from dotenv import load_dotenv
+from files import load_files, get_content
+import os
 
-config = dotenv_values('.env')
+load_dotenv()
 
 # Secret 
-secret = config["SERVICE_ACCOUNT_KEY"]
+secret = os.getenv('SERVICE_ACCOUNT_KEY')
 
 # Project Vars
-project_id = config["PROJECT_ID"]
-project_number =config["PROJECT_NUMBER"]
-location = config["LOCATION"]
-
+project_id = os.getenv('PROJECT_ID')
+project_number = os.getenv('PROJECT_NUMBER')
+location = os.getenv('LOCATION')
 parent = f'projects/{project_id}/locations/{location}'
 
 # Dataform vars
-repository = config["REPOSITORY"]
-workspace_name = config["WORKSPACE_NAME"]
+repository = os.getenv('REPOSITORY')
+workspace_name = os.getenv('WORKSPACE_NAME')
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
 print()
