@@ -1,5 +1,7 @@
 steps:
-  # Passo 1: Rodar os testes SQLFluff e Enviar para Dataform
+  # Passo 1: Autenticação
+
+  # Passo 2: Rodar os testes SQLFluff e Enviar para Dataform
   - name: 'python:latest'
     id: 'Usando Python para validar SQL e enviar para o dataform'
     entrypoint: 'bash'
@@ -16,3 +18,4 @@ steps:
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Especifica que os logs serão enviados para o Cloud Logging
+  projectId: integracaohomologado
