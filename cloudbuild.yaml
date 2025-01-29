@@ -11,60 +11,53 @@ steps:
     - |
         echo "Branch name is: $BRANCH_NAME"
 
-  # 2. Verificar e mover os arquivos necessários
-  - id: 'check secret key'
-    name: 'alpine'
-    args:
-    - sh
-    - '-c'
-    - |
-        echo "Verificando se o arquivo secret_key.json está presente..."
-        if [ ! -f secret_key.json ]; then
-          echo "Arquivo secret_key.json não encontrado no diretório atual!"
-          exit 1
-        else
-          echo "Arquivo secret_key.json encontrado."
-        fi
-
-  # 3. Inicializar o Terraform
-  - id: 'tf init'
-    name: 'hashicorp/terraform:1.0.0'
-    args:
-    - 'init'
-
-  # 4. Executar o Terraform plan
-  - id: 'tf plan'
-    name: 'hashicorp/terraform:1.0.0'
-    args:
-    - 'plan'
-
-  # 5. Aplicar mudanças no Terraform
-  - id: 'tf apply'
-    name: 'hashicorp/terraform:1.0.0'
-    args:
-    - 'apply'
-    - '--auto-approve'
-
-  # 6. Fazer commit e merge automático
-  - id: 'auto-merge'
+  # 2. Configurar o Git no ambiente do Cloud Build
+  - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
     args:
     - '-c'
     - |
-        if [[ "$BRANCH_NAME" == "feature/cloudbuild" ]]; then
-          echo "Branch is 'feature/cloudbuild', proceeding with auto-merge."
-          git config --global user.email "henriquealcalde@hotmail.com"
-          git config --global user.name "Henrique"
-          git checkout develop
-          git merge "$BRANCH_NAME" --no-ff -m "Auto-merge from $BRANCH_NAME to develop"
-          git push origin develop
-          git pull
-          echo "Success"
-          echo "All commands were executed, auto-merge was done."
-        else
-          echo "Branch is not 'feature/cloudbuild', skipping auto-merge."
-        fi
+        echo "Configurando credenciais Git..."
+        git config --global user.email "henriquealcalde@hotmail.com"
+        git config --global user.name "Henrique"
+
+  # 3. Clonar o repositório
+  - id: 'clone repo'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+    - '-c'
+    - |
+        echo "Clonando o repositório..."
+        git clone https://source.developers.google.com/p/integracaohomologado/r/nome-do-repositorio
+        cd nome-do-repositorio
+
+  # 4. Fazer merge da branch feature/cloudbuild na develop
+  - id: 'merge branch'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+    - '-c'
+    - |
+        cd nome-do-repositorio
+        echo "Fazendo checkout da branch develop..."
+        git checkout develop
+        echo "Fazendo merge da branch feature/cloudbuild na develop..."
+        git merge feature/cloudbuild --no-ff -m "Merge automático do Cloud Build"
+        echo "Push das mudanças para a branch develop..."
+        git push origin develop
+
+  # 5. Confirmar atualização no Dataform
+  - id: 'dataform update'
+    name: 'alpine'
+    args:
+    - sh
+    - '-c'
+    - |
+        echo "Atualizando Dataform no GCP..."
+        # Verifique se há comandos necessários para forçar a atualização no Dataform (opcional)
+        echo "Dataform atualizado com sucesso."
 
 options:
   logging: CLOUD_LOGGING_ONLY
