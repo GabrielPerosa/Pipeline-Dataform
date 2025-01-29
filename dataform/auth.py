@@ -36,6 +36,10 @@ def get_auth(project_number, secret_id):
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
+        
+        credentials, project = google.auth.default()  # Verifique se as credenciais são válidas
+        print(f"Autenticação bem-sucedida para o projeto {project}")
+
         print("Sucesso ao obter autenticação!")
         return credentials
 
