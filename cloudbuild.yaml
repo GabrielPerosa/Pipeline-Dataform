@@ -30,7 +30,7 @@ steps:
     - '-c'
     - |
         echo "Clonando o repositório..."
-        git clone https://source.developers.google.com/p/integracaohomologado/r/nome-do-repositorio
+        git clone https://github.com/GabrielPerosa/Pipeline-Dataform
         cd nome-do-repositorio
 
   # 4. Fazer merge da branch feature/cloudbuild na develop
