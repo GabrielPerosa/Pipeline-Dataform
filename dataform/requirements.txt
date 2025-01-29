@@ -32,7 +32,6 @@ Flask==3.1.0
 Flask-PyMongo==2.3.0
 flatbuffers==24.12.23
 gast==0.6.0
-gce-v2v @ https://storage.googleapis.com/velostrata-release/gce-v2v/gce-v2v.tar.gz#sha256=1533c75fd582af8102f3c7bb800342521b0964266f723e29ebd5afddc1089c4d
 google-api-core==2.24.0
 google-api-python-client==2.158.0
 google-auth==2.37.0
@@ -42,7 +41,7 @@ google-cloud-appengine-logging==1.5.0
 google-cloud-audit-log==0.3.0
 google-cloud-bigquery==3.27.0
 google-cloud-core==2.4.1
-google-cloud-dataform==0.5.14
+google-cloud-dataform_v1beta1==0.5.14
 google-cloud-datastore==2.20.2
 google-cloud-language==2.16.0
 google-cloud-logging==3.11.3
