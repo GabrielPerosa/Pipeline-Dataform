@@ -1,6 +1,6 @@
 steps:
   # Passo 1: Rodar os testes SQLFluff e Enviar para Dataform
-  - name: 'python:latest-version'
+  - name: 'python:latest'
     id: 'Usando Python para validar SQL e enviar para o dataform'
     entrypoint: 'bash'
     args:
