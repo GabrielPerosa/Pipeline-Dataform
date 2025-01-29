@@ -1,52 +1,20 @@
 steps:
-  # Passo 2: Rodar os testes SQLFluff
+  # Passo 1: Rodar os testes SQLFluff e Enviar para Dataform
   - name: 'python:3.8'
+    id: 'Usando Python para validar SQL e enviar para o dataform'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         pip install sqlfluff
         sqlfluff lint .
+        cd dataform/
 
-  # Passo 3: Mesclar com outra branch do GitHub
-  - name: 'gcr.io/cloud-builders/git'
-    args:
-      - 'config'
-      - '--global'
-      - 'user.name'
-      - 'cloud-build'
+        # Roda o dataform.py
+        pip install -r requirements.txt
+        python dataform.py
+        print("Sucesso!")
 
-  - name: 'gcr.io/cloud-builders/git'
-    args:
-      - 'config'
-      - '--global'
-      - 'user.email'
-      - 'cloud-build@google.com'
-
-  - name: 'gcr.io/cloud-builders/git'
-    args:
-      - 'fetch'
-
-  - name: 'gcr.io/cloud-builders/git'
-    args:
-      - 'checkout'
-      - 'staging'
-
-  - name: 'gcr.io/cloud-builders/git'
-    args:
-      - 'merge'
-      - 'origin production'
-
-  # Passo 4: Sincronizar com o repositório do Dataform, usando o Secret Manager
-  - name: 'python:3.8'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        - 'cd dataform/'
-        - 'pip install -r requirements.txt'
-        - 'python dataform.py'
-        - 'print("Sucesso!")'
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Especifica que os logs serão enviados para o Cloud Logging
