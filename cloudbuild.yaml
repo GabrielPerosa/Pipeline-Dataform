@@ -31,7 +31,7 @@ steps:
     - |
         echo "Clonando o repositório..."
         git clone https://github.com/GabrielPerosa/Pipeline-Dataform
-        cd nome-do-repositorio
+        cd .\Pipeline-Dataform\
 
   # 4. Fazer merge da branch feature/cloudbuild na develop
   - id: 'merge branch'
