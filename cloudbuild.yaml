@@ -18,4 +18,4 @@ steps:
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Especifica que os logs serão enviados para o Cloud Logging
-  projectId: integracaohomologado
+  projectId: "integracaohomologado"
