@@ -15,7 +15,6 @@ def access_secret(project_number, secret_id):
     secret_name = f"projects/{project_number}/secrets/{secret_id}/versions/latest"
     response = client.access_secret_version(name=secret_name)
     secret_payload = response.payload.data.decode("UTF-8")
-    print("JSON Obtido")
     return secret_payload
 
 

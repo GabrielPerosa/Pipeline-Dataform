@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 # Secret 
-secret = os.getenv('SERVICE_ACCOUNT_KEY')
+secret = os.getenv('my-secret')
 
 # Project Vars
 project_id = os.getenv('PROJECT_ID')
