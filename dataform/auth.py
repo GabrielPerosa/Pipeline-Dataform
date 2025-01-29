@@ -34,7 +34,7 @@ def get_auth(project_number, secret_id):
 
         # Autenticação usando a chave da conta de serviço recuperada
         credentials = service_account.Credentials.from_service_account_info(
-            service_account_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+            service_account_info, scopes=["https://www.googleapis.com/auth/cloud-platform",""https://console.developers.google.com""]
         )
         print("Sucesso ao obter autenticação!")
         return credentials

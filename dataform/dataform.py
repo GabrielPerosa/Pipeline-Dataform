@@ -21,9 +21,8 @@ parent = f'projects/{project_id}/locations/{location}'
 # Dataform vars
 repository = os.getenv('REPOSITORY')
 workspace_name = os.getenv('WORKSPACE_NAME')
-workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
-print()
+workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
 credentials = get_auth(project_number, secret)
 
