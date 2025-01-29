@@ -43,10 +43,10 @@ steps:
     args:
       - '-c'
       - |
-        - 'cd dataform/'
-        - 'pip install -r requirements.txt'
-        - 'python dataform.py'
-        - 'print("Sucesso!")'
+        - cd dataform/
+        - pip install -r requirements.txt
+        - python dataform.py
+        - print("Sucesso!")
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Especifica que os logs serão enviados para o Cloud Logging
