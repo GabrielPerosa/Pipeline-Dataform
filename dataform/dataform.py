@@ -4,6 +4,7 @@ from google.cloud.dataform_v1beta1 import types
 from files import load_files, get_content
 from auth import get_auth
 
+
 # Secret 
 secret = "pfs-risco-tivea-key"
 
