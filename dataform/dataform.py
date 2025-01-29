@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 # Secret 
-secret = os.getenv('my-secret')
+secret = "pfs-risco-tivea-key"
 
 # Project Vars
 project_id = os.getenv('PROJECT_ID')
