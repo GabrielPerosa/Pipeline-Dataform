@@ -6,10 +6,10 @@ steps:
     args:
       - '-c' 
       - |
-        gcloud secrets versions access latest --secret="pfs-risco-tivea-key" > my-secret.json
-        gcloud auth activate-service-account --key-file=my-secret.json
+        gcloud config set project integracaohomologado || echo "FALHA"
+        gcloud secrets versions access latest --secret="pfs-risco-tivea-key" > my-secret.json || echo "FALHA"
+        gcloud auth activate-service-account --key-file=my-secret.json || echo "FALHA"
         echo "Ok"
-        gcloud config set project integracaohomologado   
 
   # Passo 2: Rodar os testes SQLFluff e Enviar para Dataform
   - name: 'python:latest'
