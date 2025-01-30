@@ -1,11 +1,5 @@
-substitutions:
-  _BRANCH_NAME: '${BRANCH_NAME}'
-  _FEATURE_NAME: '${FEATURE_NAME}'
-  _GIT_USER_NAME: '${GIT_USER_NAME}'
-  _GIT_USER_EMAIL: '${GIT_USER_EMAIL}'
-
 steps:
-  # 1. Carregar variáveis do .env no ambiente
+  # 1. Carregar o arquivo .env (se necessário, manter essa etapa)
   - id: 'load env'
     name: 'google/cloud-sdk'
     entrypoint: 'sh'
@@ -13,9 +7,9 @@ steps:
       - '-c'
       - |
         echo "Carregando variáveis do arquivo .env..."
-        export $(cat .env | xargs)
+        export $(cat .env | xargs) # Carrega as variáveis de ambiente do arquivo .env
 
-  # 2. Configurar credenciais do Git
+  # 2. Configurar o Git no ambiente do Cloud Build
   - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -26,17 +20,19 @@ steps:
         git config --global user.name "$_GIT_USER_NAME"
         git config --global user.email "$_GIT_USER_EMAIL"
 
-  # 3. Clonar o repositório
+  # 3. Clonar o repositório usando o GIT_TOKEN
   - id: 'clone repo'
     name: 'alpine/git'
     entrypoint: 'sh'
+    secretEnv:
+      - GIT_TOKEN  # Aqui o GIT_TOKEN será acessado do Secret Manager
     args:
       - '-c'
       - |
         echo "Clonando o repositório..."
-        git clone https://$_GIT_USER_NAME:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
-        git config --global user.email "$_GIT_USER_EMAIL"
-        git config --global user.name "$_GIT_USER_NAME"
+        git clone https://${GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
+        git config --global user.email "${GIT_USER_EMAIL}"
+        git config --global user.name "${GIT_USER_NAME}"
 
   # 4. Verificar novos commits
   - id: 'check commits'
@@ -80,6 +76,18 @@ steps:
           echo "Atualizando Dataform no GCP..."
           echo "Dataform atualizado com sucesso."
           echo "Tudo pronto."
+
+# Substituições
+substitutions:
+  _BRANCH_NAME: 'feature/testes'
+  _FEATURE_NAME: 'feature/testes-base'
+  GIT_USER_NAME: 'GabrielPerosa'
+  GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
+
+# Permissões de acesso ao Secret Manager
+secrets:
+  - secretEnv:
+      GIT_TOKEN: projects/SEU_PROJECT_ID/secrets/GIT_TOKEN/versions/latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
