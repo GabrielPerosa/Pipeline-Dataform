@@ -28,7 +28,7 @@ workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name
 credentials = get_auth(secret)
 
 # cliente da API Dataform
-service = dataform_v1beta1.DataformClient(credentials=credenciais)
+service = dataform_v1beta1.DataformClient(credentials=credentials)
 # Load Files
 source_folder = "../definitions/"
 
