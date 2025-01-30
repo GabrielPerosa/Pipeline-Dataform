@@ -9,15 +9,15 @@ import os
 
 load_dotenv()
 
-print("Iniciando variaveis")
 # Secret 
 secret = "pfs-risco-tivea-key"
 
 # Project Vars
-project_id = "integracaohomologado" # os.getenv('PROJECT_ID')
+project_id = os.getenv('PROJECT_ID')
 project_number = os.getenv('PROJECT_NUMBER')
 location = os.getenv('LOCATION')
 parent = f'projects/{project_id}/locations/{location}'
+
 
 # Dataform vars
 repository = os.getenv('REPOSITORY')
@@ -28,8 +28,7 @@ workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name
 credentials = get_auth(project_number, secret)
 
 # cliente da API Dataform
-service = dataform_v1beta1.DataformClient()
-
+service = dataform_v1beta1.DataformClient(credentials=credentials)
 # Load Files
 source_folder = "../definitions/"
 
