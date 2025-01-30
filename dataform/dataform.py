@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 # Secret 
-secret = "pfs-risco-tivea-key"
+secret = os.getenv('SERVICE_ACCOUNT_KEY')
 
 # Project Vars
 project_id = os.getenv('PROJECT_ID')
@@ -25,10 +25,10 @@ workspace_name = os.getenv('WORKSPACE_NAME')
 
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
-credentials = get_auth(project_number, secret)
+# credentials = get_auth(project_number, secret)
 
 # cliente da API Dataform
-service = dataform_v1beta1.DataformClient(credentials=credentials)
+service = dataform_v1beta1.DataformClient(credentials=secret)
 # Load Files
 source_folder = "../definitions/"
 
