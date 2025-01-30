@@ -84,7 +84,7 @@ substitutions:
   GIT_USER_NAME: 'GabrielPerosa'
   GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
-# Permissões de acesso ao Secret Manager
+# Permissões de acesso ao Secret Manager 
 secrets:
   - secretEnv:
       GIT_TOKEN: projects/SEU_PROJECT_ID/secrets/GIT_TOKEN/versions/latest
