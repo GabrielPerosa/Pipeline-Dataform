@@ -8,12 +8,13 @@ from files import load_files, get_content
 import os
 
 load_dotenv()
+
 print("Iniciando variaveis")
 # Secret 
 secret = "pfs-risco-tivea-key"
 
 # Project Vars
-project_id = os.getenv('PROJECT_ID')
+project_id = "integracaohomologado" # os.getenv('PROJECT_ID')
 project_number = os.getenv('PROJECT_NUMBER')
 location = os.getenv('LOCATION')
 parent = f'projects/{project_id}/locations/{location}'
