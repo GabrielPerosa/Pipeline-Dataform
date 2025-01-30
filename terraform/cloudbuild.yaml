@@ -87,7 +87,7 @@ substitutions:
 # Permissões de acesso ao Secret Manager 
 secrets:
   - secretEnv:
-      GIT_TOKEN: projects/SEU_PROJECT_ID/secrets/GIT_TOKEN/versions/latest
+      GIT_TOKEN: projects/integracaohomologado/secrets/GIT_TOKEN/versions/latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
