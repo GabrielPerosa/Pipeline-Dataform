@@ -1,0 +1,86 @@
+substitutions:
+  _BRANCH_NAME: 'feature/testes'
+  _FEATURE_NAME: 'feature/testes-base'
+  _GIT_USER_NAME: 'GabrielPerosa'
+  _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
+
+steps:
+  # 1. Carregar o GIT_TOKEN do arquivo .env
+  - id: 'load git token'
+    name: 'alpine'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          echo "Carregando GIT_TOKEN do arquivo .env..."
+          export $(cat .env | xargs)
+          echo "Token carregado com sucesso!"
+
+  # 2. Configurar o Git no ambiente do Cloud Build
+  - id: 'git config'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          echo "Configurando credenciais do Git..."
+          git config --global user.name "$_GIT_USER_NAME"
+          git config --global user.email "$_GIT_USER_EMAIL"
+
+  # 3. Clonar o repositório
+  - id: 'clone repo'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          echo "Clonando o repositório..."
+          git clone https://$_GIT_USER_NAME:${GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform
+          cd Pipeline-Dataform
+          git fetch --all
+
+  # 4. Verificar se há novos commits na branch feature/testes-base
+  - id: 'check commits'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          cd Pipeline-Dataform
+          echo "Verificando novos commits na branch $_FEATURE_NAME..."
+          git checkout $_FEATURE_NAME
+          git pull origin $_FEATURE_NAME
+          if [ "$(git log origin/$_BRANCH_NAME..HEAD --oneline)" = "" ]; then
+            echo "Nenhum novo commit encontrado na branch $_FEATURE_NAME. Finalizando o pipeline."
+            exit 0
+          fi
+          echo "Novos commits encontrados na branch $_FEATURE_NAME."
+
+  # 5. Fazer merge da branch feature/testes-base na branch feature/testes
+  - id: 'merge branch'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          cd Pipeline-Dataform
+          echo "Fazendo checkout da branch $_BRANCH_NAME..."
+          git checkout $_BRANCH_NAME
+          echo "Fazendo merge da branch $_FEATURE_NAME na $_BRANCH_NAME..."
+          git merge $_FEATURE_NAME --no-ff -m "Merge automático do Cloud Build"
+          echo "Push das mudanças para a branch $_BRANCH_NAME..."
+          git push origin $_BRANCH_NAME
+
+  # 6. Confirmar atualização no Dataform
+  - id: 'dataform update'
+    name: 'alpine'
+    args:
+      - sh
+      - '-c'
+      - |
+          echo "Atualizando Dataform no GCP..."
+          echo "Dataform atualizado com sucesso."
+          echo "Tudo pronto"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
