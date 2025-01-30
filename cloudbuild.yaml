@@ -7,7 +7,7 @@ steps:
       - '-c' 
       - |
         gcloud secrets versions access latest --secret="pfs-risco-tivea-key" > my-secret.json
-        gcloud auth activate-service-account --key-file=my-secret.json || echo "Ao autenticar"
+        gcloud auth activate-service-account --key-file=my-secret.json
         echo "Ok"
         gcloud config set project integracaohomologado   
 
@@ -24,7 +24,7 @@ steps:
         # Roda o dataform.py
         cd dataform/
         pip install -r requirements.txt
-        echo "Iniciando python"
+        pip install --upgrade pip
         python dataform.py
 
 options:
