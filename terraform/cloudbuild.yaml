@@ -1,8 +1,8 @@
 substitutions:
   _BRANCH_NAME: 'feature/testes'
   _FEATURE_NAME: 'feature/testes-base'
-  _GIT_USER_NAME: 'GabrielPerosa'
-  _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
+  GIT_USER_NAME: 'GabrielPerosa'
+  GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
 steps:
   # 1. Carregar o arquivo .env contendo o GIT_TOKEN
