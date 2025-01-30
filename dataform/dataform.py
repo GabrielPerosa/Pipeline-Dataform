@@ -25,10 +25,10 @@ workspace_name = os.getenv('WORKSPACE_NAME')
 
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
-# credentials = get_auth(project_number, secret)
+credentials = get_auth(secret)
 
 # cliente da API Dataform
-service = dataform_v1beta1.DataformClient(credentials=secret)
+service = dataform_v1beta1.DataformClient(credentials=credenciais)
 # Load Files
 source_folder = "../definitions/"
 
