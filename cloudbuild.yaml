@@ -29,4 +29,5 @@ steps:
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Especifica que os logs serão enviados para o Cloud Logging
-  timeout: 120s
+
+timeout: 120s
