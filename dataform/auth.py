@@ -25,12 +25,12 @@ EX:
     credentials = get_auth(project_number, secret)
 '''
 
-def get_auth(secret_id):
+def get_auth(project_number, secret_id):
     try:
-        # service_account_json = access_secret(project_number, secret_id)
+        service_account_json = access_secret(project_number, secret_id)
 
         # Convertendo o JSON da chave da conta de serviço em um dicionário
-        service_account_info = json.loads(secret_id)
+        service_account_info = json.loads(service_account_json)
 
         # Autenticação usando a chave da conta de serviço recuperada
         credentials = service_account.Credentials.from_service_account_info(
