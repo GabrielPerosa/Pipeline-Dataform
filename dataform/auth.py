@@ -30,7 +30,7 @@ def get_auth(secret_id):
         # service_account_json = access_secret(project_number, secret_id)
 
         # Convertendo o JSON da chave da conta de serviço em um dicionário
-        service_account_info = json.loads(str(secret_id).decode("UTF-8"))
+        service_account_info = json.loads(str(secret_id)payload.data.decode("UTF-8"))
 
         # Autenticação usando a chave da conta de serviço recuperada
         credentials = service_account.Credentials.from_service_account_info(
