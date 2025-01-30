@@ -1,8 +1,6 @@
 substitutions:
   _BRANCH_NAME: 'feature/testes'
   _FEATURE_NAME: 'feature/testes-base'
-  _GIT_USER_NAME: 'GabrielPerosa'
-  _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
 steps:
   # 1. Carregar o arquivo .env contendo o GIT_TOKEN
@@ -34,9 +32,9 @@ steps:
       - '-c'
       - |
         echo "Clonando o repositório..."
-        git clone https://$_GIT_USER_NAME:$GIT_TOKEN@github.com/GabrielPerosa/Pipeline-Dataform
-        cd Pipeline-Dataform
-        git fetch --all
+        git clone https://${GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
+        git config --global user.email "${GIT_USER_EMAIL}"
+        git config --global user.name "${GIT_USER_NAME}"
 
   # 4. Verificar se há novos commits na branch feature/testes-base
   - id: 'check commits'
