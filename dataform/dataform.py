@@ -8,7 +8,7 @@ from files import load_files, get_content
 import os
 
 load_dotenv()
-
+print("Iniciando variaveis")
 # Secret 
 secret = "pfs-risco-tivea-key"
 
