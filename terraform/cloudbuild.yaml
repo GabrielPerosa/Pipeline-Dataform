@@ -1,11 +1,11 @@
 substitutions:
-  _BRANCH_NAME: 'feature/testes'
-  _FEATURE_NAME: 'feature/testes-base'
-  GIT_USER_NAME: 'GabrielPerosa'
-  GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
+  _BRANCH_NAME: '${BRANCH_NAME}'
+  _FEATURE_NAME: '${FEATURE_NAME}'
+  _GIT_USER_NAME: '${GIT_USER_NAME}'
+  _GIT_USER_EMAIL: '${GIT_USER_EMAIL}'
 
 steps:
-  # 1. Carregar o arquivo .env contendo o GIT_TOKEN
+  # 1. Carregar variáveis do .env no ambiente
   - id: 'load env'
     name: 'google/cloud-sdk'
     entrypoint: 'sh'
@@ -13,9 +13,9 @@ steps:
       - '-c'
       - |
         echo "Carregando variáveis do arquivo .env..."
-        export $(cat .env | xargs) # Carrega as variáveis de ambiente do arquivo .env
+        export $(cat .env | xargs)
 
-  # 2. Configurar o Git no ambiente do Cloud Build
+  # 2. Configurar credenciais do Git
   - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -26,7 +26,7 @@ steps:
         git config --global user.name "$_GIT_USER_NAME"
         git config --global user.email "$_GIT_USER_EMAIL"
 
-  # 3. Clonar o repositório usando o GIT_TOKEN
+  # 3. Clonar o repositório
   - id: 'clone repo'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -34,11 +34,11 @@ steps:
       - '-c'
       - |
         echo "Clonando o repositório..."
-        git clone https://${GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
-        git config --global user.email "${GIT_USER_EMAIL}"
-        git config --global user.name "${GIT_USER_NAME}"
+        git clone https://$_GIT_USER_NAME:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
+        git config --global user.email "$_GIT_USER_EMAIL"
+        git config --global user.name "$_GIT_USER_NAME"
 
-  # 4. Verificar se há novos commits na branch feature/testes-base
+  # 4. Verificar novos commits
   - id: 'check commits'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -55,7 +55,7 @@ steps:
           fi
           echo "Novos commits encontrados na branch $_FEATURE_NAME."
 
-  # 5. Fazer merge da branch feature/testes-base na branch feature/testes
+  # 5. Fazer merge das branches
   - id: 'merge branch'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -70,7 +70,7 @@ steps:
           echo "Push das mudanças para a branch $_BRANCH_NAME..."
           git push origin $_BRANCH_NAME
 
-  # 6. Confirmar atualização no Dataform
+  # 6. Atualizar Dataform
   - id: 'dataform update'
     name: 'alpine'
     args:
@@ -79,7 +79,7 @@ steps:
       - |
           echo "Atualizando Dataform no GCP..."
           echo "Dataform atualizado com sucesso."
-          echo "Tudo pronto"
+          echo "Tudo pronto."
 
 options:
   logging: CLOUD_LOGGING_ONLY
