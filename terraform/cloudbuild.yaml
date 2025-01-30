@@ -5,16 +5,15 @@ substitutions:
   _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
 steps:
-  # 1. Carregar o GIT_TOKEN do arquivo .env
-  - id: 'load git token'
-    name: 'alpine'
+  # 1. Carregar o arquivo .env contendo o GIT_TOKEN
+  - id: 'load env'
+    name: 'google/cloud-sdk'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-          echo "Carregando GIT_TOKEN do arquivo .env..."
-          export $(cat .env | xargs)
-          echo "Token carregado com sucesso!"
+        echo "Carregando variáveis do arquivo .env..."
+        export $(cat .env | xargs) # Carrega as variáveis de ambiente do arquivo .env
 
   # 2. Configurar o Git no ambiente do Cloud Build
   - id: 'git config'
@@ -23,21 +22,21 @@ steps:
     args:
       - '-c'
       - |
-          echo "Configurando credenciais do Git..."
-          git config --global user.name "$_GIT_USER_NAME"
-          git config --global user.email "$_GIT_USER_EMAIL"
+        echo "Configurando credenciais do Git..."
+        git config --global user.name "$_GIT_USER_NAME"
+        git config --global user.email "$_GIT_USER_EMAIL"
 
-  # 3. Clonar o repositório
+  # 3. Clonar o repositório usando o GIT_TOKEN
   - id: 'clone repo'
     name: 'alpine/git'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-          echo "Clonando o repositório..."
-          git clone https://$_GIT_USER_NAME:${GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform
-          cd Pipeline-Dataform
-          git fetch --all
+        echo "Clonando o repositório..."
+        git clone https://$_GIT_USER_NAME:$GIT_TOKEN@github.com/GabrielPerosa/Pipeline-Dataform
+        cd Pipeline-Dataform
+        git fetch --all
 
   # 4. Verificar se há novos commits na branch feature/testes-base
   - id: 'check commits'
