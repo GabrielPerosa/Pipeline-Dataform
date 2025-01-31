@@ -1,11 +1,7 @@
-from google.cloud import secretmanager
-import json
-from google.auth import credentials
-from google.oauth2 import service_account
-import google.auth
-from google.auth.transport.requests import Request
-from google.oauth2 import service_account
 
+from google.auth import exceptions
+from google.auth.transport.requests import Request
+from google.auth import default
 '''
 A função 'acess_secret' tem o objetivo de obter a secret armazenada no Secret Manager. 
 Passamos a número do projeto e o id da secret para obtermnos a secret.
@@ -36,18 +32,19 @@ EX:
 
 def get_auth(project_number, secret_id):
     try:
-        service_account_json = access_secret(project_number, secret_id)
+        # Obtendo as credenciais padrão (isso já deve cuidar de renovações de tokens e autenticação)
+        credentials, project = default()
 
-        # Convertendo o JSON da chave da conta de serviço em um dicionário
-        service_account_info = json.loads(service_account_json)
+        # Se for necessário, você pode adicionar algum código para verificar se o token está expirado
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
 
-        # Autenticação usando a chave da conta de serviço recuperada
-        credentials = service_account.Credentials.from_service_account_info(service_account_info)
-        print(f"Autenticação bem-sucedida para o projeto {project}")
-
-        print("Sucesso ao obter autenticação!")
+        print(f"Autenticação bem-sucedida para o projeto {project_number}")
         return credentials
 
+    except exceptions.DefaultCredentialsError as e:
+        print(f"Erro ao obter credenciais: {e}")
+        return None
     except Exception as e:
         print(f'Erro no Auth.py: {e}')
-        return e
+        return None
