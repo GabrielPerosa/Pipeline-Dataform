@@ -12,13 +12,11 @@ steps:
   - id: 'clone repo'
     name: 'alpine/git'
     entrypoint: 'sh'
-    secretEnv:
-      - GIT_TOKEN
     args:
       - '-c'
       - |
         echo "Clonando o repositório..."
-        git clone https://${_GIT_USER_NAME}:${GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git
+        git clone https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git
         cd Pipeline-Dataform
 
   - id: 'check commits'
