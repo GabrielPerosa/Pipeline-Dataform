@@ -25,7 +25,7 @@ EX:
     credentials = get_auth(project_number, secret)
 '''
 
-def get_auth(secret_id):
+def get_auth(project_number, secret_id):
     try:
         service_account_json = access_secret(project_number, secret_id)
 
