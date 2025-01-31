@@ -52,7 +52,7 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
 
   - id: 'dataform update'
-    name: 'gcr.io/your-project-id/dataform-cli'
+    name: 'gcr.io/integracaohomologado/dataform-cli'
     entrypoint: 'sh'
     args:
       - '-c'
