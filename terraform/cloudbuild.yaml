@@ -29,9 +29,9 @@ steps:
       - '-c'
       - |
         echo "Clonando o repositório..."
-        git clone https://${GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
-        git config --global user.email "${GIT_USER_EMAIL}"
-        git config --global user.name "${GIT_USER_NAME}"
+        git clone https://${_GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git
+        git config --global user.email "${_GIT_USER_EMAIL}"
+        git config --global user.name "${_GIT_USER_NAME}"
 
   # 4. Verificar novos commits
   - id: 'check commits'
@@ -75,7 +75,7 @@ steps:
       - sh
       - '-c'
       - |
-          echo "Atualizando Dataform no GCP..."
+          echo "Atualizando Dataform no GCP..." 
           echo "Dataform atualizado com sucesso."
           echo "Tudo pronto."
 
@@ -87,9 +87,8 @@ substitutions:
   _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
 # Permissões de acesso ao Secret Manager
-secrets:
-  - secretEnv:
-      GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
+secretEnv:
+  GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
