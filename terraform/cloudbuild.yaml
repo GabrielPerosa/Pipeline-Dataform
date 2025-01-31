@@ -1,16 +1,4 @@
 steps:
-  - id: 'load env'
-    name: 'google/cloud-sdk'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        echo "Instalando dependências..."
-        pip install -r requirements.txt
-        cd terraform
-        python variables.py
-        echo "Variáveis carregadas."
-
   - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -20,6 +8,18 @@ steps:
         echo "Configurando credenciais do Git..."
         git config --global user.name "$_GIT_USER_NAME"
         git config --global user.email "$_GIT_USER_EMAIL"
+
+  - id: 'clone repo'
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    secretEnv:
+      - GIT_TOKEN
+    args:
+      - '-c'
+      - |
+        echo "Clonando o repositório..."
+        git clone https://${_GIT_USER_NAME}:${GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git
+        cd Pipeline-Dataform
 
   - id: 'check commits'
     name: 'alpine/git'
@@ -48,17 +48,28 @@ steps:
         echo "Fazendo merge da branch $_FEATURE_NAME na $_BRANCH_NAME..."
         git checkout $_BRANCH_NAME
         git pull
-        git merge $_FEATURE_NAME
+        git merge $_FEATURE_NAME --allow-unrelated-histories
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
+        git push origin $_BRANCH_NAME
 
   - id: 'dataform update'
-    name: 'gcr.io/integracaohomologado/dataform-cli'
+    name: 'node:16'  # Usando a imagem oficial do Node.js
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        echo "Atualizando Dataform no GCP..."
-        dataform run --project-dir /workspace/Pipeline-Dataform
+        echo "Instalando o Dataform CLI..."
+        npm install -g @dataform/cli
+
+        echo "Instalando dependências do projeto Dataform..."
+        npm install
+
+        echo "Compilando o projeto Dataform..."
+        dataform compile
+
+        echo "Executando o projeto Dataform..."
+        dataform run
+
         echo "Dataform atualizado com sucesso."
         echo "Tudo pronto."
 
@@ -67,6 +78,10 @@ substitutions:
   _FEATURE_NAME: 'feature/testes-base'
   _GIT_USER_NAME: 'GabrielPerosa'
   _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
+
+secrets:
+  - secretEnv:
+      GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
