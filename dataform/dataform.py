@@ -18,14 +18,20 @@ project_number = os.getenv('PROJECT_NUMBER')
 location = os.getenv('LOCATION')
 parent = f'projects/{project_id}/locations/{location}'
 
-
 # Dataform vars
 repository = os.getenv('REPOSITORY')
 workspace_name = os.getenv('WORKSPACE_NAME')
 
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
+print(secret)
+print(project_id)
+print(project_number)
+print(location)
+printrepository()
+
 credentials = get_auth(project_number, secret)
+
 
 # cliente da API Dataform
 service = dataform_v1beta1.DataformClient(credentials=credentials)

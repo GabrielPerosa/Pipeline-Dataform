@@ -20,7 +20,7 @@ def access_secret(project_number, secret_id):
     if credentials.expired and credentials.refresh_token:
         credentials.refresh(Request())
 
-    client = secretmanager.SecretManagerServiceClient(credentials=credentials)
+    client = secretmanager.SecretManagerServiceClient(project=project, credentials=credentials)
     secret_name = f"projects/{project_number}/secrets/{secret_id}/versions/latest"
     response = client.access_secret_version(name=secret_name)
     secret_payload = response.payload.data.decode("UTF-8")
