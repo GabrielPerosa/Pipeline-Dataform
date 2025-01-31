@@ -1,16 +1,4 @@
 steps:
-
-  # Passo 1: Autenticação
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c' 
-      - |
-        gcloud config set project integracaohomologado || echo "FALHA"
-        gcloud secrets versions access latest --secret="pfs-risco-tivea-key" > my-secret.json || echo "FALHA"
-        gcloud auth activate-service-account --key-file=my-secret.json || echo "FALHA"
-        echo "Ok"
-
   # Passo 2: Rodar os testes SQLFluff e Enviar para Dataform
   - name: 'python:latest'
     id: 'Usando Python para validar SQL e enviar para o dataform'

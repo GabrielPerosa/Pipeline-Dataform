@@ -27,14 +27,14 @@ EX:
 
 def get_auth(secret_id):
     try:
-        # service_account_json = access_secret(project_number, secret_id)
+        service_account_json = access_secret(project_number, secret_id)
 
         # Convertendo o JSON da chave da conta de serviço em um dicionário
-        # service_account_info = json.loads(str(secret_id).data.decode("UTF-8"))
+        service_account_info = json.loads(service_account_json)
 
         # Autenticação usando a chave da conta de serviço recuperada
         credentials = service_account.Credentials.from_service_account_info(
-            secret_id, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+            service_account_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
         print(f"Autenticação bem-sucedida para o projeto {project}")
 
