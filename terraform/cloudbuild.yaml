@@ -6,6 +6,9 @@ steps:
     args:
       - '-c'
       - |
+        pip install requirements.txt
+        cd terraform
+        python variables.py
         echo "Carregando variáveis"
 
   # 2. Configure Git
@@ -19,22 +22,7 @@ steps:
         git config --global user.name "$_GIT_USER_NAME"
         git config --global user.email "$_GIT_USER_EMAIL"
 
-  # 3. Clone repository
-  - id: 'clone repo'
-    name: 'alpine/git'
-    entrypoint: 'sh'
-    secretEnv:
-      - GIT_TOKEN
-    args:
-      - '-c'
-      - |
-        echo "Clonando o repositório..."
-        if ! git clone https://${_GIT_USER_NAME}:${GIT_TOKEN}@github.com/seu_usuario/seu_repositorio.git; then
-          echo "Falha ao clonar o repositório."
-          exit 1
-        fi
-
-  # 4. Check for new commits
+  # 3. Check for new commits
   - id: 'check commits'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -51,7 +39,7 @@ steps:
         fi
         echo "Novos commits encontrados na branch $_FEATURE_NAME."
 
-  # 5. Merge branches
+  # 4. Merge branches
   - id: 'merge branch'
     name: 'alpine/git'
     entrypoint: 'sh'
@@ -69,7 +57,7 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push
 
-  # 6. Update Dataform
+  # 5. Update Dataform
   - id: 'dataform update'
     name: 'gcr.io/your-project-id/dataform-cli'  # Custom image with Dataform CLI
     entrypoint: 'sh'
