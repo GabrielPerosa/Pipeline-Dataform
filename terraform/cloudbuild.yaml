@@ -73,12 +73,6 @@ steps:
         echo "Dataform atualizado com sucesso."
         echo "Tudo pronto."
 
-substitutions:
-  _BRANCH_NAME: 'feature/testes'
-  _FEATURE_NAME: 'feature/testes-base'
-  _GIT_USER_NAME: 'GabrielPerosa'
-  _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
-
 secrets:
   - secretEnv:
       GIT_TOKEN: projects/95663131429/secrets/token-git
