@@ -1,50 +1,49 @@
+---
 steps:
-  # 1. Load environment variables (if needed)
-  - id: 'load env'
-    name: 'google/cloud-sdk'
-    entrypoint: 'sh'
+  - id: load env
+    name: google/cloud-sdk
+    entrypoint: sh
     args:
-      - '-c'
+      - -c
       - |
         pip install requirements.txt
         cd terraform
         python variables.py
         echo "Carregando variáveis"
-
-  # 2. Configure Git
-  - id: 'git config'
-    name: 'alpine/git'
-    entrypoint: 'sh'
+  - id: git config
+    name: alpine/git
+    entrypoint: sh
     args:
-      - '-c'
+      - -c
       - |
         echo "Configurando credenciais do Git..."
         git config --global user.name "$_GIT_USER_NAME"
         git config --global user.email "$_GIT_USER_EMAIL"
-
-  # 3. Check for new commits
-  - id: 'check commits'
-    name: 'alpine/git'
-    entrypoint: 'sh'
+  - id: check commits
+    name: alpine/git
+    entrypoint: sh
     args:
-      - '-c'
-      - |
+      - -c
+      - >
         cd Pipeline-Dataform
+
         echo "Verificando novos commits na branch $_FEATURE_NAME..."
+
         git checkout $_FEATURE_NAME
+
         git pull origin $_FEATURE_NAME
+
         if [ "$(git log origin/$_BRANCH_NAME..HEAD --oneline)" = "" ]; then
           echo "Nenhum novo commit encontrado na branch $_FEATURE_NAME. Finalizando o pipeline."
           exit 0
         fi
-        echo "Novos commits encontrados na branch $_FEATURE_NAME."
 
-  # 4. Merge branches
-  - id: 'merge branch'
-    name: 'alpine/git'
-    entrypoint: 'sh'
+        echo "Novos commits encontrados na branch $_FEATURE_NAME."
+  - id: merge branch
+    name: alpine/git
+    entrypoint: sh
     args:
-      - '-c'
+      - -c
       - |
         cd Pipeline-Dataform
         echo "Fazendo checkout da branch $_FEATURE_NAME..."
@@ -56,30 +55,23 @@ steps:
         git merge $_FEATURE_NAME
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push
-
-  # 5. Update Dataform
-  - id: 'dataform update'
-    name: 'gcr.io/your-project-id/dataform-cli'  # Custom image with Dataform CLI
-    entrypoint: 'sh'
+  - id: dataform update
+    name: gcr.io/your-project-id/dataform-cli
+    entrypoint: sh
     args:
-      - '-c'
+      - -c
       - |
         echo "Atualizando Dataform no GCP..."
         dataform run --project-dir /workspace/Pipeline-Dataform
         echo "Dataform atualizado com sucesso."
         echo "Tudo pronto."
-
-# Substitutions
 substitutions:
-  _BRANCH_NAME: 'feature/testes'
-  _FEATURE_NAME: 'feature/testes-base'
-  _GIT_USER_NAME: 'GabrielPerosa'
-  _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
-
-# Secrets
+  _BRANCH_NAME: feature/testes
+  _FEATURE_NAME: feature/testes-base
+  _GIT_USER_NAME: GabrielPerosa
+  _GIT_USER_EMAIL: gabrielperosa493@gmail.com
 secrets:
   - secretEnv:
       GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
-
 options:
   logging: CLOUD_LOGGING_ONLY
