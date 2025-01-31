@@ -14,7 +14,7 @@ EX:
 '''
 
 def access_secret(project_number, secret_id):
-    credentials = google.auth.default()
+    credentials, _ = google.auth.default()
 
     # Verifique se as credenciais estão com o token de acesso válido
     if credentials.expired and credentials.refresh_token:
@@ -42,9 +42,7 @@ def get_auth(project_number, secret_id):
         service_account_info = json.loads(service_account_json)
 
         # Autenticação usando a chave da conta de serviço recuperada
-        credentials = service_account.Credentials.from_service_account_info(
-            service_account_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
         print(f"Autenticação bem-sucedida para o projeto {project}")
 
         print("Sucesso ao obter autenticação!")
