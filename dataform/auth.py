@@ -14,7 +14,7 @@ EX:
 '''
 
 def access_secret(project_number, secret_id):
-    credentials, project = google.auth.default()
+    credentials = google.auth.default()
 
     # Verifique se as credenciais estão com o token de acesso válido
     if credentials.expired and credentials.refresh_token:
