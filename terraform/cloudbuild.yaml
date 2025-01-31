@@ -58,12 +58,15 @@ steps:
       - '-c'
       - |
           cd Pipeline-Dataform
-          echo "Fazendo checkout da branch $_BRANCH_NAME..."
-          git checkout $_BRANCH_NAME
+          echo "Fazendo checkout da branch $_FEATURE_NAME..."
+          git checkout $_FEATURE_NAME
+          git pull
           echo "Fazendo merge da branch $_FEATURE_NAME na $_BRANCH_NAME..."
-          git merge $_FEATURE_NAME --no-ff -m "Merge automático do Cloud Build"
+          git checkout $_BRANCH_NAME
+          git pull
+          git merge $_FEATURE_NAME
           echo "Push das mudanças para a branch $_BRANCH_NAME..."
-          git push origin $_BRANCH_NAME
+          git push
 
   # 6. Atualizar Dataform
   - id: 'dataform update'
