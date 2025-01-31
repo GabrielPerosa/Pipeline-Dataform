@@ -51,12 +51,13 @@ for file in files:
         contents=file_content,
     )
 
-try:
-    result = service.write_file(request)
-    print(result)
-    i+=1
-except Exception as e:
-    print(f'Erro no Dataform.py: {e}')
+    try:
+        result = service.write_file(request)
+        print(result)
+        i+=1
+    except Exception as e:
+        print(f'Erro no Dataform.py: {e}')
+
 if i == 0:
     print(f'Envio fracassou: {i}/{size}')
 elif i < size:
