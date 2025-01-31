@@ -87,8 +87,9 @@ substitutions:
   _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
 # Permissões de acesso ao Secret Manager
-secretEnv:
-  GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
+secrets:
+  - secretEnv:
+      GIT_TOKEN: projects/integracaohomologado/secrets/token-git/versions/latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
