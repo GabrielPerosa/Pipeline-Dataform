@@ -69,9 +69,5 @@ substitutions:
   _GIT_USER_NAME: 'GabrielPerosa'
   _GIT_USER_EMAIL: 'gabrielperosa493@gmail.com'
 
-secrets:
-  - secretEnv:
-      GIT_TOKEN: projects/95663131429/secrets/token-git/versions/latest
-
 options:
   logging: CLOUD_LOGGING_ONLY
