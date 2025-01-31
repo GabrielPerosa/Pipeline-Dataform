@@ -51,7 +51,7 @@ steps:
         git push origin $_BRANCH_NAME
 
   - id: 'dataform update'
-    name: 'node:16'  # Usando a imagem oficial do Node.js
+    name: 'node:16'
     entrypoint: 'sh'
     args:
       - '-c'
@@ -70,10 +70,6 @@ steps:
 
         echo "Dataform atualizado com sucesso."
         echo "Tudo pronto."
-
-secrets:
-  - secretEnv:
-      GIT_TOKEN: projects/95663131429/secrets/token-git
 
 options:
   logging: CLOUD_LOGGING_ONLY
