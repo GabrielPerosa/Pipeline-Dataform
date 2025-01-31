@@ -50,7 +50,6 @@ steps:
         git pull
         git merge $_FEATURE_NAME
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
-        git push
 
   - id: 'dataform update'
     name: 'gcr.io/your-project-id/dataform-cli'
