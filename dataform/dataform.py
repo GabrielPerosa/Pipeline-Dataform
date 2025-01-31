@@ -28,7 +28,7 @@ print(secret)
 print(project_id)
 print(project_number)
 print(location)
-printrepository()
+print(repository)
 
 credentials = get_auth(project_number, secret)
 
@@ -56,7 +56,7 @@ try:
     print(result)
     i+=1
 except Exception as e:
-    print(f'Erro: {e}')
+    print(f'Erro no Dataform.py: {e}')
 if i == 0:
     print(f'Envio fracassou: {i}/{size}')
 elif i < size:

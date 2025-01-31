@@ -51,5 +51,5 @@ def get_auth(project_number, secret_id):
         return credentials
 
     except Exception as e:
-        print(f'Erro: {e}')
+        print(f'Erro no Auth.py: {e}')
         return e
