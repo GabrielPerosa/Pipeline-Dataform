@@ -48,7 +48,7 @@ steps:
         git pull
         git merge $_FEATURE_NAME --allow-unrelated-histories -X theirs
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
-        git push origin $_BRANCH_NAME
+        git push
 
   - id: 'dataform update'
     name: 'node:16'
