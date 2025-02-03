@@ -48,7 +48,7 @@ steps:
         git pull
         git merge $_FEATURE_NAME --allow-unrelated-histories -X theirs
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
-        git push
+        git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
   - id: 'dataform update'
     name: 'node:16'
@@ -69,7 +69,7 @@ steps:
         dataform run
 
         echo "Dataform atualizado com sucesso."
-        echo "Tudo pronto ."
+        echo "Tudo pronto."
 
 options:
   logging: CLOUD_LOGGING_ONLY
