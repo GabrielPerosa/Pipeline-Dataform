@@ -4,13 +4,9 @@ from google.cloud.dataform_v1beta1 import types
 from files import load_files, get_content
 from auth import get_auth
 from dotenv import load_dotenv
-from files import load_files, get_content
 import os
 
 load_dotenv()
-
-# Secret 
-secret = os.getenv('SERVICE_ACCOUNT_KEY')
 
 # Project Vars
 project_id = os.getenv('PROJECT_ID')
@@ -24,13 +20,7 @@ workspace_name = os.getenv('WORKSPACE_NAME')
 
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
-print(secret)
-print(project_id)
-print(project_number)
-print(location)
-print(repository)
-
-credentials = get_auth(project_number, secret)
+credentials = get_auth(project_number)
 
 
 # cliente da API Dataform
