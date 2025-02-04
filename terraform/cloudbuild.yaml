@@ -50,26 +50,22 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
-  - id: 'dataform update'
-    name: 'node:16'
-    entrypoint: 'sh'
+  - name: 'python:update dataform'
+    id: 'Usando Python para validar SQL e enviar para o dataform'
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Instalando o Dataform CLI..."
-        npm install -g @dataform/cli
+        pip install sqlfluff
+        sqlfluff lint .
 
-        echo "Instalando dependências do projeto Dataform..."
-        npm install
-
-        echo "Compilando o projeto Dataform..."
-        dataform compile
-
-        echo "Executando o projeto Dataform..."
-        dataform run
-
-        echo "Dataform atualizado com sucesso."
-        echo "Tudo pronto.1"
+        # Roda o dataform.py
+        cd dataform/
+        pip install -r requirements.txt
+        pip install --upgrade pip
+        python dataform.py
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+timeout: 210s
