@@ -56,11 +56,12 @@ steps:
     args:
       - '-c'
       - |
+        cd dataform/
+
         pip install sqlfluff
         sqlfluff lint .
 
         # Roda o dataform.py
-        cd dataform/
         pip install -r requirements.txt
         pip install --upgrade pip
         python dataform.py
