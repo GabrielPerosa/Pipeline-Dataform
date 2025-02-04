@@ -50,7 +50,7 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
-  - name: 'python:update dataform'
+  - name: 'python:latest'
     id: 'Usando Python para validar SQL e enviar para o dataform'
     entrypoint: 'bash'
     args:
