@@ -50,18 +50,17 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
-  - name: 'python:latest'
-    id: 'Usando Python para validar SQL e enviar para o dataform'
+  - id: 'Usando Python para validar SQL e enviar para o dataform'
+    name: 'python:latest'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        cd dataform/
-
         pip install sqlfluff
         sqlfluff lint .
 
         # Roda o dataform.py
+        cd dataform/
         pip install -r requirements.txt
         pip install --upgrade pip
         python dataform.py
