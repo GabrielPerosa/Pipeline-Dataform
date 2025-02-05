@@ -1,10 +1,10 @@
 <div style="text-align: justify;">
 
-# CI/CD com Cloud Build e Dataform
+# 🚀 CI/CD com Cloud Build e Dataform
 
 ![Diagrama aplicação](images/image.png)
 
-## Ferramentas Google usadas:
+## ☁️ Ferramentas Google usadas:
 * Cloud Build
 * Dataform
 
@@ -15,9 +15,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O usuário faz um commit na branch `feature/testes-base`. Nela tem que ter um arquivo `cloudbuild.yaml`, onde é ele que define o pipeline de build e deploy. No nosso caso a branch `feature/testes-base` é monitorada pelo **cloud build** que caso tenha um commit novo ele irá executar o pipeline e atualizar o **dataform** automaticamente por meio de um script python.
 
 ## Configurações Cloud Build e Dataform
-[Configuração Cloud Build](config/cloudbuild.md)
+⚙️ [Configuração Cloud Build](config/cloudbuild.md)
 
-[Configuração Dataform](config/dataform.md)
+⚙️ [Configuração Dataform](config/dataform.md)
 
 ## Código cloudbuild.yaml
 ```

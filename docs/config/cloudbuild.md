@@ -1,6 +1,6 @@
 <div style="text-align: justify;">
 
-# Configurações Cloud Build
+# 📋 Configurações Cloud Build
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dentro do **Cloud Build** na opção "Gatilho" temos as configurações usadas:  
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Clique em criar Gatilhos  

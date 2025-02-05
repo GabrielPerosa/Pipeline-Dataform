@@ -1,6 +1,6 @@
 <div style="text-align: justify;">
 
-# Configurações Dataform
+# 📋 Configurações Dataform
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Procure por Dataform
 
 ## Criar repositório
