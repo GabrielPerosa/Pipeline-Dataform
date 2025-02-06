@@ -1,5 +1,27 @@
 steps:
-  - id: 'git config'
+  - id: 'Usando Python para validar SQL e enviar para o dataform'
+    name: 'python:latest'
+    env:
+        - '_LOCATION=$_LOCATION'
+        - '_PROJECT_ID=$_PROJECT_ID'
+        - '_PROJECT_NUMBER=$_PROJECT_NUMBER'
+        - '_REPOSITORY=$_REPOSITORY'
+        - '_WORKSPACE_NAME=$_WORKSPACE_NAME'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install sqlfluff
+        sqlfluff lint dataform/ || echo "Erro no SQLFluff" && exit 1
+
+
+        # Roda o dataform.py
+        cd dataform/
+        pip install -r requirements.txt
+        pip install --upgrade pip
+        python dataform.py
+    
+    - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
     args:
@@ -50,20 +72,6 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
-  - id: 'Usando Python para validar SQL e enviar para o dataform'
-    name: 'python:latest'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        pip install sqlfluff
-        sqlfluff lint .
-
-        # Roda o dataform.py
-        cd dataform/
-        pip install -r requirements.txt
-        pip install --upgrade pip
-        python dataform.py
 
 options:
   logging: CLOUD_LOGGING_ONLY
