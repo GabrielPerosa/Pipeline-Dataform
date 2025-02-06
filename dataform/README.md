@@ -8,5 +8,11 @@ Esse programa foi desenvolvido com a finalidade de testar a conexão com a API d
 
 ## Implementação
 Usamos as bibliotecas: `google-api-core`, `google-auth`e `google-cloud-dataform` para autenticar obtendo a chave do serviço do **Secret Manager** e enviar solicitações a API do Dataform. 
-Primeiro autenticamos usando uma função que obteria as credenciais necessárias para criamos um Cliente Dataform. Com isso, podemos dar continuidade e implementar uma lógica que enviaria solicitações ao Dataform para criarmos arquivos, listarmos repositórios entre outros.
+Primeiro autenticamos usando uma função que obteria as credenciais padrão para criamos um Cliente Dataform. Com isso, pudemos dar continuidade e implementar uma lógica que enviaria solicitações ao Dataform para criarmos arquivos presentes no Gatilho acionado por uma determinada *branch*.
+A ideia principal consiste em:
+
+1. Uma branch, no caso develop, seria responsável por receber *push* quando o analista de dados terminasse de editar ou criar algum script.  
+2. Ao receber push, o gatilho da branch develop executaria a *pipeline* encarregada de testar a sintaxe dos arquivos e, em seguida, abrir uma conexão com o Dataform e enviar os arquivos atualizados para uma nova *branch*, no caso *staging*.
+
+Dessa maneira, o processo de validação seria automatizado, além de possibilitar novas implementações futuras, como envio de e-mail de confirmação, entre outros.
 
