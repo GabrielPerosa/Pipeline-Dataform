@@ -9,14 +9,14 @@ import os
 load_dotenv()
 
 # Project Vars
-project_id = os.getenv('PROJECT_ID')
-project_number = os.getenv('PROJECT_NUMBER')
-location = os.getenv('LOCATION')
+project_id = os.getenv('_PROJECT_ID')
+project_number = os.getenv('_PROJECT_NUMBER')
+location = os.getenv('_LOCATION')
 parent = f'projects/{project_id}/locations/{location}'
 
 # Dataform vars
-repository = os.getenv('REPOSITORY')
-workspace_name = os.getenv('WORKSPACE_NAME')
+repository = os.getenv('_REPOSITORY')
+workspace_name = os.getenv('_WORKSPACE_NAME')
 
 workspace_path = f"{parent}/repositories/{repository}/workspaces/{workspace_name}"
 
