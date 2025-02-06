@@ -12,7 +12,7 @@ steps:
       - '-c'
       - |
         pip install sqlfluff
-        sqlfluff lint dataform/ || echo "Erro no SQLFluff" && exit 1
+        sqlfluff lint ../dataform/ || echo "Erro no SQLFluff" && exit 1
 
 
         # Roda o dataform.py
