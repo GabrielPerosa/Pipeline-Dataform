@@ -20,5 +20,5 @@ Dessa maneira, o processo de validação seria automatizado, além de possibilit
 2. Logo em seguida, executamos o código encarregado de autenticar usando credenciais padrão, abrir conexão e enviar arquivos para o workspace (que representaria a branch no dataform).
 3. Ao final, uma mensagem de confirmação seria registrada nos logs da pipeline
 
-  ![logs image](https://github.com/GabrielPerosa/Pipeline-Dataform/blob/feature/docs/docs/logs.png)
+  ![logs image](https://github.com/GabrielPerosa/Pipeline-Dataform/blob/develop/docs/images/pipeline-logs.png)
   imagem mostrando os logs da pipeline bem-sucedida
