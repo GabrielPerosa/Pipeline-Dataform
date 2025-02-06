@@ -5,7 +5,7 @@ steps:
         - '_LOCATION=$_LOCATION'
         - '_PROJECT_ID=$_PROJECT_ID'
         - '_PROJECT_NUMBER=$_PROJECT_NUMBER'
-        - '_REPOSITOR'=$_REPOSITORY'
+        - '_REPOSITORY=$_REPOSITORY'
         - '_WORKSPACE_NAME=$_WORKSPACE_NAME'
     entrypoint: 'bash'
     args:
