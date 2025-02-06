@@ -12,7 +12,7 @@ steps:
       - '-c'
       - |
         pip install sqlfluff
-        sqlfluff lint dataform/ || echo "Erro no SQLFluff" && exit 1
+        sqlfluff lint ../definitions/
 
 
         # Roda o dataform.py
@@ -20,8 +20,8 @@ steps:
         pip install -r requirements.txt
         pip install --upgrade pip
         python dataform.py
-    
-    - id: 'git config'
+  
+  - id: 'git config'
     name: 'alpine/git'
     entrypoint: 'sh'
     args:
