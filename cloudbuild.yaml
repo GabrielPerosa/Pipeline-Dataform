@@ -1,6 +1,12 @@
 steps:
   - id: 'Usando Python para validar SQL e enviar para o dataform'
     name: 'python:latest'
+    env:
+        - '_LOCATION=$_LOCATION'
+        - '_PROJECT_ID=$_PROJECT_ID'
+        - '_PROJECT_NUMBER=$_PROJECT_NUMBER'
+        - '_REPOSITOR'=$_REPOSITORY'
+        - '_WORKSPACE_NAME=$_WORKSPACE_NAME'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -52,12 +58,6 @@ steps:
 
   - id: 'merge branch'
     name: 'alpine/git'
-    env:
-        - '_LOCATION=$_LOCATION'
-        - '_PROJECT_ID=$_PROJECT_ID'
-        - '_PROJECT_NUMBER=$_PROJECT_NUMBER'
-        - '_REPOSITOR'=$_REPOSITORY'
-        - '_WORKSPACE_NAME=$_WORKSPACE_NAME'
     entrypoint: 'sh'
     args:
       - '-c'
