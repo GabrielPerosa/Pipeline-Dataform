@@ -3,10 +3,7 @@ from googleapiclient.discovery import build
 from google.cloud.dataform_v1beta1 import types
 from files import load_files, get_content
 from auth import get_auth
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
 
 # Project Vars
 project_id = os.getenv('_PROJECT_ID')
