@@ -12,6 +12,7 @@ steps:
       - '-c'
       - |
         pip install sqlfluff
+        cd ../
         sqlfluff lint /definitions || echo "Erro no SQLFluff" && exit 1
 
 
