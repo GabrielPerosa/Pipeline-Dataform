@@ -22,14 +22,14 @@ steps:
         python dataform.py
   
   - id: 'git config'
-  name: 'alpine/git'
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      echo "Configurando credenciais do Git..."
-      git config --global user.name "$_GIT_USER_NAME"
-      git config --global user.email "$_GIT_USER_EMAIL"
+    name: 'alpine/git'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        echo "Configurando credenciais do Git..."
+        git config --global user.name "$_GIT_USER_NAME"
+        git config --global user.email "$_GIT_USER_EMAIL"
 
   - id: 'clone repo'
     name: 'alpine/git'
