@@ -1,0 +1,12 @@
+[sqlfluff]
+dialect = "bigquery"
+
+[sqlfluff.parser]
+parse_comments_as = "both"
+
+[sqlfluff.paths]
+# Diretório onde seus arquivos SQLX estão localizados
+paths = ["definitions/**/*.sqlx"]
+
+[sqlfluff.rules]
+max_line_length = 120
