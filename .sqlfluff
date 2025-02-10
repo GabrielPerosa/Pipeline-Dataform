@@ -5,7 +5,6 @@ dialect = "bigquery"
 parse_comments_as = "both"
 
 [sqlfluff.paths]
-# Diretório onde seus arquivos SQLX estão localizados
 paths = ["definitions/**/*.sqlx"]
 
 [sqlfluff.rules]
