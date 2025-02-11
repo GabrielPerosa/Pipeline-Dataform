@@ -21,11 +21,33 @@ def validate_requirePartitionFilter_true(content):
     else:
         raise Exception('Erro: requirePartitionFilter não foi definido como true')
 
+def validate_sql_command(content):
+    # Define padrão
+    pattern = r"pre_operations\s*{.*?}$"
+
+    # busca a incidencia no conteudo
+    match = re.search(pattern, content, re.DOTALL)
+
+    # Processa o conteudo obtido
+    if match:
+        # obter codigo
+        sql_code = match.group() 
+        lines = sql_code.splitlines()
+
+        # remove linhas desnecessárias
+        sql_cleaned = '\n'.join(lines[1:-1])
+            
+        # Grava arquivo para realizar teste
+        with open("test.sql", "w", encoding="utf-8") as file:
+            file.write(sql_cleaned)
+            print("Gravado com sucesso")    
+        
 
 def exec_validations(content):
     try:
         validation_exists(content)
         validate_requirePartitionFilter_true(content)
+        validate_sql_command(content)
     except Exception as e:
         return e
 
