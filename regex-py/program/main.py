@@ -50,6 +50,50 @@ def exec_validations(content):
         validate_sql_command(content)
     except Exception as e:
         return e
+    
+variabels_words = {
+    "BETWEEN",
+    "AND",
+    "OR",
+    "NOT",
+    "IN"
+}
+
+def search_variables(array,file):
+    for word in array:
+        match = re.search(fr"\b{word}\b",file)
+        if match:
+            print(f"Commando {word}: \033[32mOK\033[0m")
+        else:
+            print(f"Commando {word}: \033[31mNONE\033[0m")
+    
+def search_dates(file): 
+    dates = re.findall(r'\d{4}-\d{2}-\d{2}',file)
+    if dates:
+        print(f"Commando {dates}: \033[32mOK\033[0m")
+    else:
+        print(f"Commando {dates}: \033[31mNONE\033[0m")
+
+def find_name(output_name, name_to_find, file):
+    pattern_prefix = fr'{name_to_find}:\s*["\']([A-Za-z0-9_]+)["\']\s*,?'
+    pattern_name= fr'["\']([A-Za-z0-9_]+)["\']\s*,?'
+    name = re.search(pattern_prefix, file)
+    repeated = re.findall(pattern_name, file)
+    
+    if repeated:
+        count_often = len(repeated)
+        print(f"Nome da {output_name}: {name.group(1)}  REPETIÇÕES: {count_often}")
+    else:
+        print(f"Nome da {output_name} não encontrado.")
+
+
+def partition_exist(file):
+    partition = re.search(r'partitionBy:\s*["\']([A-Za-z0-9_]+)["\']\s*,?',file)
+
+    if partition:
+        print(f"Partição de dados: \033[32mTRUE\033[0m")
+    else:
+        print(f"Partição de dados: \033[31mFALSE\033[0m")
 
 
 if __name__ == "__main__":
@@ -75,5 +119,9 @@ if __name__ == "__main__":
         else:
             print("Houve um erro em: {} - {}\n".format(file, result))
             ok.append(result)
-    
-    
+
+    find_name("dataset","processo",file_content)
+    find_name("tabela","name",file_content)
+    partition_exist(file_content)
+    find_name("partição","partitionBy",file_content)
+    search_variables(variabels_words,file_content)
