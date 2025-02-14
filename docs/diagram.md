@@ -1,18 +1,20 @@
 ```mermaid
 sequenceDiagram
-    participant Dev as Desenvolvedor
-    participant GitHub as GitHub (staging)
+    participant Eng as Engenheiro
+    participant GitHub as GitHub (Teste)
     participant CloudBuild as Cloud Build
-    participant SQLFluff as Validador SQLFluff
-    participant GitProd as GitHub (produção)
-    participant Dataform as Dataform GCP
+    participant Validação as Validação
+    participant GitProd as GitHub (Produção)
+    participant Dataform as Dataform Produção
+ 
+    note right of Eng: Validação
+    Eng->>GitHub: Commit e Push 
+    GitHub->>CloudBuild: Dispara pipeline 
+    CloudBuild->>Validação: Executa testes
+    note right of CloudBuild: Testes aprovados
+    CloudBuild->>Eng: Falaha nos testes
+    Validação->>GitProd: Merge manual
+    GitProd->>Dataform: Script validados
 
-    Dev->>GitHub: Commit e Push para staging
-    GitHub->>CloudBuild: Dispara pipeline do Cloud Build
-    CloudBuild->>SQLFluff: Executa SQLFluff para validar scripts
-    alt Testes aprovados
-        CloudBuild->>GitProd: Faz merge para produção
-        CloudBuild->>Dataform: Envia scripts para o Dataform
-    else Testes falharam
-        CloudBuild->>Dev: Notifica erro nos scripts
-    end
+    
+```
