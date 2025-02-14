@@ -1,7 +1,11 @@
 import os
 '''
-A função 'load_files' é usada para carregar os arquivos presentes num caminho passado como argumento, que deverá ser uma string. 
-Ela retorna um array de strings contendo os nomes dos arquivos e a quantidade de arquivos presentes no array.
+OBJETIVO: A função 'load_files' é usada para carregar os arquivos presentes 
+num caminho passado como argumento, que deverá ser uma string. 
+
+PARÂMETROS: Ela retorna um array de strings contendo os nomes dos 
+arquivos e a quantidade de arquivos presentes no array.
+
 Ex: 
     files, size = load_files("definitions/")
     print(files)
@@ -13,8 +17,10 @@ def load_files(source_folder):
     return files, size
 
 '''
-A função 'get_content' é usada para obter o conteúdo de cada arquivo. 
-Para acessá-los, é necessário passar como parâmetros o caminho relativo ao arquivo e o nome do arquivo.
+OBJETIVO: A função 'get_content' é usada para obter o conteúdo de cada arquivo. 
+
+PARÂMETROS: Para acessá-los, é necessário passar como parâmetros o caminho relativo ao arquivo e o nome do arquivo.
+
 Ex: 
     content = get_content(source_folder, file)
     print(content)

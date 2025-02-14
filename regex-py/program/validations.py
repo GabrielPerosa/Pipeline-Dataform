@@ -1,4 +1,5 @@
 import re
+import os
 
 
 """
@@ -45,13 +46,13 @@ def validate_requirePartitionFilter_true(content):
         create_sql_for_validate(content, file_name)
 """
 def create_sql_for_validate(content, file_name):
-    # Define padrão
+    sql_folder = './sql_files_for_tests'
+
+    # Padrão para encontrar código SQL
     pattern = r"pre_operations\s*{.*?}$"
 
     # busca a incidencia no conteudo
     match = re.search(pattern, content, re.DOTALL)
-
-    # Processa o conteudo obtido
     if match:
         # obter codigo
         sql_code = match.group() 
@@ -60,6 +61,9 @@ def create_sql_for_validate(content, file_name):
         # remove linhas desnecessárias
         sql_cleaned = '\n'.join(lines[1:-1])
             
+        # Cria a pasta para armazenar SQLs
+        if not os.path.exists(sql_folder):
+            os.makedirs(sql_folder)
 
         file_name = file_name.replace("sqlx", "sql")
         path = './sql_files_for_tests/{}'.format(file_name)
@@ -75,7 +79,6 @@ def create_sql_for_validate(content, file_name):
     PARÂMETROS: Recebe uma string como conteudo e outra como nome do arquivo
     Ex:
         result = exec_validations(content, file_name)
-
 """
 def exec_validations(content, file_name):
     try:
