@@ -1,7 +1,6 @@
 import re
 import os
 
-
 """
     OBJETIVO: validar se há presença de palavra-chave
     PARÂMETROS: Recebe uma string como conteudo e outra 
@@ -12,8 +11,7 @@ import os
 """
 def validation_exists(content, file_name):
     # Itens a validar
-    print("Iniciando validação em : {}".format(file_name))
-    items = ['partitionBy','requirePartitionFilter', '@@query_label']
+    items = ['requirePartitionFilter', '@@query_label']
     
     for i in items:
         result = re.search(i, content)
@@ -29,13 +27,40 @@ def validation_exists(content, file_name):
     Ex:
         validate_requirePartitionFilter_true(content)
 """
-def validate_requirePartitionFilter_true(content):
-    exp = "requirePartitionFilter"
-    result = re.search(r'requirePartitionFilter:\s*true', content, re.IGNORECASE)
+
+"""
+"""
+def validate_partitionDefinition(content):
+    # Primeira parte da validação
+    requirePartitionFilter = r'requirePartitionFilter:\s*true'
+    result = re.search(requirePartitionFilter, content, re.IGNORECASE)
     if (result):
-        print(" -> requirePartitionFilter definido como \033[33mTRUE\033[0m\n")
+        print(" -> requirePartitionFilter definido como \033[33mTRUE\033[0m")
     else:
         raise Exception('Erro: requirePartitionFilter não foi definido como true')
+
+    # Segunda parte da validação
+    partitionBy = r'partitionBy:\s*"([^"]+)",'
+    partition_name = re.search(partitionBy, content)
+
+    if(partition_name):
+        print(" -> partitionBy foi definido: \033[33m{} \033[0m ".format(partition_name.group(1)))
+        partitionBy = r"PARTITION BY\s+(.*)"
+        partition_name_in_sql = re.search(partitionBy, content, re.IGNORECASE)
+
+        if not (partition_name_in_sql):
+            print("Partição não está sendo usada no código SQL")
+        elif (partition_name.group(1) != partition_name_in_sql.group(1)):
+            print("Nome na partição está diferente no código SQL")
+        else:
+            print("Nome da partição está presente no código SQL")
+    else:
+        print(" -> partitionBy não definido")
+    
+
+#def validate_type_of_incremental(content):
+#    result = re.search(r'type:\s*"incremental"', content, re.IGNORECASE)
+#
 
 """
     OBJETIVO: criar arquivos .sql que serão avaliados pelo SQL Fluff na pipeline
@@ -82,8 +107,9 @@ def create_sql_for_validate(content, file_name):
 """
 def exec_validations(content, file_name):
     try:
+        print("Iniciando validação em : {}".format(file_name))
         validation_exists(content, file_name)
-        validate_requirePartitionFilter_true(content)
+        validate_partitionDefinition(content)
         create_sql_for_validate(content, file_name)
     except Exception as e:
         return e

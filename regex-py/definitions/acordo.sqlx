@@ -233,5 +233,5 @@ post_operations {
         after_rows_count - before_rows_count AS count
     ),
     "EXECUÇÃO FINALIZADA COM SUCESSO"
-  );
+  );'
 }
