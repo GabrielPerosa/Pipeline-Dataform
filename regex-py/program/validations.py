@@ -2,65 +2,104 @@ import re
 import os
 
 """
-    OBJETIVO: validar se há presença de palavra-chave
+    OBJETIVO:   Validar se há presença de palavra-chaves especificadas
+    
     PARÂMETROS: Recebe uma string como conteudo e outra 
                 como nome do arquivo que serão usados para
-                verificar ocorrências e notificar o nome do arquivo verificado
+                verificar ocorrências
     Ex:
-        validation_exists(content, file_name)
+        validation_if_exists(content)
 """
-def validation_exists(content, file_name):
-    # Itens a validar
-    items = ['requirePartitionFilter', '@@query_label']
+def validation_if_exists(content):    
+    # type do script
+    type_config =  validate_type_in_config(content)
     
-    for i in items:
-        result = re.search(i, content)
-        if(result):
-            print(" -> {}: \033[33mOK\033[0m".format(i))
-        else:
-            raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
+    if (type_config == 'incremental'):
+        print("--> Type definido para: \33[33m{}\33[0m".format(type_config))
+        
+        items = ['updatePartitionFilter', 'uniqueKey']
+        for i in items:
+            result = re.search(i, content)
+            if (result):
+                print("--> {}: \033[33mOK\033[0m".format(i))
+            else:
+                raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
+    else:
+        print("\33[33mType não definido como incremental:{}\33[0m".format(type_config))
+
+    # Itens a validar
+    item = '@@query_label'
+    result = re.search(item, content)
+    
+    if(result):
+        print("--> {}: \033[33mOK\033[0m".format(item))
+    else:
+        raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
 
 """
-    OBJETIVO: validar se há presença de palavra-chave e se foi definida como TRUE
-    PARÂMETROS: Recebe uma string como conteudo usada para
-                verificar ocorrência e validar se está definida como TRUE
-    Ex:
-        validate_requirePartitionFilter_true(content)
-"""
-
-"""
+    OBJETIVO: Validar se foi definida a partição da view e verificar se foi usada no código SQL
+    PARÂMETROS: o conteudo que passará por validação
+    Ex: 
+        validate_partitionDefinition(content)
+        
 """
 def validate_partitionDefinition(content):
     # Primeira parte da validação
     requirePartitionFilter = r'requirePartitionFilter:\s*true'
     result = re.search(requirePartitionFilter, content, re.IGNORECASE)
     if (result):
-        print(" -> requirePartitionFilter definido como \033[33mTRUE\033[0m")
+        print("--> requirePartitionFilter definido como \033[33mTRUE\033[0m")
     else:
         raise Exception('Erro: requirePartitionFilter não foi definido como true')
 
     # Segunda parte da validação
     partitionBy = r'partitionBy:\s*"([^"]+)",'
-    partition_name = re.search(partitionBy, content)
+    result = re.search(partitionBy, content)
 
-    if(partition_name):
-        print(" -> partitionBy foi definido: \033[33m{} \033[0m ".format(partition_name.group(1)))
-        partitionBy = r"PARTITION BY\s+(.*)"
+    if(result):
+        partition_name = result.group(1)
+        print("--> partitionBy foi definido: \033[33m{} \033[0m ".format(partition_name))
+        
+        partitionBy = r'PARTITION BY\s+(.*)'
         partition_name_in_sql = re.search(partitionBy, content, re.IGNORECASE)
-
-        if not (partition_name_in_sql):
-            print("Partição não está sendo usada no código SQL")
-        elif (partition_name.group(1) != partition_name_in_sql.group(1)):
-            print("Nome na partição está diferente no código SQL")
+        
+        if not (result):
+            print("\033[33mPartição não está sendo usada no código SQL\033[0m")
+        elif ( 0 > partition_name_in_sql.group(1).find(partition_name)):
+            print("\033[33mNome da partição está diferente no código SQL\033[0m")
         else:
-            print("Nome da partição está presente no código SQL")
+            print("--> Partição está sendo usada no código SQL")
     else:
-        print(" -> partitionBy não definido")
+        print("\033[33mpartitionBy não definido\033[0m")
     
+""" 
+    OBJETIVO: Validar se existe o comando para criar tabela se ela não existir
+    PARÂMETROS: O conteudo que passará por validação
+    Ex: 
+        validate_create_table(content)
+"""
+def validate_create_table(content):
+    # Verifica se existe create table if not exists 
+    create_table_pattern = r'pre_operations\s*\{\s*CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS'
+    result = re.search(create_table_pattern, content, re.IGNORECASE)
+    
+    if (result):
+        print("--> CREATE TABLE IF NOT EXISTS em pre_operations\33[33m: OK\033[0m")
+    else:
+        print("\033[33m--> Não há CREATE TABLE IF NOT EXISTS em pre_operations\033[0m")
 
-#def validate_type_of_incremental(content):
-#    result = re.search(r'type:\s*"incremental"', content, re.IGNORECASE)
-#
+"""
+    OBJETIVO: Validar se o tipo da configuração do script é incremental ou não 
+    PARÂMETROS: O conteúdo que passará por validação
+    Ex: 
+        validate_type_in_config(content)
+"""
+def validate_type_in_config(content):
+    # Verifica se type = incremental
+    incremental_pattern = r'type:\s*"([^"]+)"'
+    result = re.search(incremental_pattern, content)
+    return result.group(1)
+
 
 """
     OBJETIVO: criar arquivos .sql que serão avaliados pelo SQL Fluff na pipeline
@@ -99,6 +138,7 @@ def create_sql_for_validate(content, file_name):
             print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))    
             
 
+
 """
     OBJETIVO: centralizar e executar funções de validação. Caso haja erro, retorna uma exceção
     PARÂMETROS: Recebe uma string como conteudo e outra como nome do arquivo
@@ -108,8 +148,9 @@ def create_sql_for_validate(content, file_name):
 def exec_validations(content, file_name):
     try:
         print("Iniciando validação em : {}".format(file_name))
-        validation_exists(content, file_name)
         validate_partitionDefinition(content)
+        validate_create_table(content)
+        validation_if_exists(content)
         create_sql_for_validate(content, file_name)
     except Exception as e:
         return e

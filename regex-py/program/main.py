@@ -66,7 +66,7 @@ if __name__ == "__main__":
         result = exec_validations(file_content, file)
 
         if (result == None):
-            print("Sem erros em \033[33m {} \033[0m\n".format(file))
+            print("\033[31m ___ Sem erros em  {} ___\033[0m\n".format(file))
         else:
             print("Erro em \033[33m {} \033[0m - {}\n".format(file, result))
             ok.append(result)
