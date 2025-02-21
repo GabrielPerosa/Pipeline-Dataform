@@ -25,7 +25,7 @@ def validation_if_exists(content):
             else:
                 raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
     else:
-        print("\33[33mType não definido como incremental:{}\33[0m".format(type_config))
+        print("\33[33mType não definido como incremental:{}\33[0m".format(type))
 
     # Itens a validar
     item = '@@query_label'
