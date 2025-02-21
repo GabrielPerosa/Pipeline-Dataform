@@ -52,9 +52,9 @@ if __name__ == "__main__":
     # Carregando diretório Definitions
     try: 
         definitions = os.getenv("_SOURCE_FOLDER")    
-        if (definitions != "../definitions"):
+        if (definitions != "../definitions/"):
             print("Erro ao carregar variavel de ambiente")
-            definitions = '../definitions'
+            definitions = '../definitions/'
     except:
         print(e)
     
