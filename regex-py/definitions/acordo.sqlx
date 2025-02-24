@@ -1,4 +1,4 @@
-config {
+co/nfig {
   type: "incremental",
   name: "cobranca_acordo",
   description: "Carrega dados de acordos de cobrança.",
