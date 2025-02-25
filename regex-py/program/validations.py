@@ -101,14 +101,7 @@ def validate_type_in_config(content):
     return result.group(1)
 
 
-"""
-    OBJETIVO: criar arquivos .sql que serão avaliados pelo SQL Fluff na pipeline
-    PARÂMETROS: Recebe uma string como conteudo e outra 
-                como nome do arquivo que serão usados para
-                criar o arquivo
-    Ex:
-        create_sql_for_validate(content, file_name)
-"""
+
 def create_sql_for_validate(content, file_name):
     sql_folder = './sql_files_for_tests'
 
@@ -135,8 +128,64 @@ def create_sql_for_validate(content, file_name):
         # Grava arquivo para realizar teste
         with open(path, "w", encoding="utf-8") as file:
             file.write(sql_cleaned)
-            print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))    
-            
+            print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
+
+"""
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_DATE()' no script SQL.
+    PARÂMETROS:
+        content (str): Conteúdo do script SQL a ser analisado.
+    Ex:
+        validate_where_clause(conteudo_script)
+"""
+
+def validate_where_clause(content):
+    where_pattern = r'WHERE\s+([^;]*\s*<=\s*CURRENT_DATE\(\)\s*[^;]*)'
+    where_matches = re.findall(where_pattern, content, re.IGNORECASE)
+    
+    if not where_matches:
+        print("\033[33m--> Nenhuma cláusula WHERE <= CURRENT_DATE encontrada no script\033[0m")
+        return
+    
+    print(f"--> Cláusulas WHERE <= CURRENT_DATE encontradas: \033[33m{len(where_matches)}\033[0m")
+    
+
+"""
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '< CURRENT_DATE()' no script SQL.
+    PARÂMETROS:
+        content (str): Conteúdo do script SQL a ser analisado.
+    Ex:
+        validate_where_clause2(conteudo_script)
+"""
+
+def validate_where_clause2(content):
+    where_pattern = r'WHERE\s+([^;]*\s*<\s*CURRENT_DATE\(\)\s*[^;]*)'
+    where_matches = re.findall(where_pattern, content, re.IGNORECASE)
+    
+    if not where_matches:
+        print("\033[33m--> Nenhuma cláusula WHERE < CURRENT_DATE encontrada no script\033[0m")
+        return
+    
+    print(f"--> Cláusulas WHERE < CURRENT_DATE encontradas: \033[33m{len(where_matches)}\033[0m")
+
+
+"""
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_TIMESTAMP()' no script SQL.
+    PARÂMETROS:
+        content (str): Conteúdo do script SQL a ser analisado.
+    Ex:
+        validate_where_clause3(conteudo_script)
+"""
+
+def validate_where_clause3(content):
+    where_pattern = r'WHERE\s+([^;]*\s*<=\s*CURRENT_TIMESTAMP()\(\)\s*[^;]*)'
+    where_matches = re.findall(where_pattern, content, re.IGNORECASE)
+    
+    if not where_matches:
+        print("\033[33m--> Nenhuma cláusula WHERE <= CURRENT_TIMESTAMP() encontrada no script\033[0m")
+        return
+    
+    print(f"--> Cláusulas WHERE <= CURRENT_TIMESTAMP() encontradas: \033[33m{len(where_matches)}\033[0m")
+
 
 
 """
@@ -147,7 +196,10 @@ def create_sql_for_validate(content, file_name):
 """
 def exec_validations(content, file_name):
     try:
-        print("Iniciando validação em : {}".format(file_name))
+        print(f"Iniciando validação em: {file_name}")
+        validate_where_clause(content)
+        validate_where_clause2(content)
+        validate_where_clause3(content)
         validate_partitionDefinition(content)
         validate_create_table(content)
         validation_if_exists(content)
