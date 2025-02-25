@@ -50,7 +50,13 @@ def partition_exist(file):
 
 if __name__ == "__main__":
     # Carregando diretório Definitions
-    definitions = os.getenv("SOURCE_FOLDER")    
+    try: 
+        definitions = os.getenv("_SOURCE_FOLDER")    
+        if (definitions != "../definitions/"):
+            print("Erro ao carregar variavel de ambiente")
+            definitions = '../definitions/'
+    except:
+        print(e)
     
     # Carregando arquivos
     files, size = load_files(definitions)

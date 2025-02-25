@@ -1,53 +1,3 @@
-co/nfig {
-  type: "incremental",
-  name: "cobranca_acordo",
-  description: "Carrega dados de acordos de cobrança.",
-  tags: [],
-  columns: {
-    id_acordo_cobranca: "Identificador do acordo de cobrança.",
-    id_cliente_externo: "Identificador externo do cliente.",
-    num_cpf_cnpj_cliente: "CPF ou CNPJ do cliente.",
-    id_cobrador: "Identificador do cobrador.",
-    nom_cobrador: "Nome do cobrador.",
-    nom_modalidade_acordo: "Nome da modalidade do acordo.",
-    num_acordo: "Número do acordo.",
-    num_parcelas: "Número de parcelas.",
-    dat_operacao: "Data da operação.",
-    dat_emissao: "Data de emissão.",
-    dth_processamento: "Data e hora do processamento.",
-    dth_inclusao_origem: "Data e hora da inclusão na origem.",
-    dth_alteracao_origem: "Data e hora da alteração na origem.",
-    dat_vencimento: "Data de vencimento.",
-    ind_situacao: "Indicador da situação.",
-    val_taxa_operacao: "Valor da taxa de operação.",
-    val_principal: "Valor principal.",
-    val_juros: "Valor dos juros.",
-    val_atributo: "Valor do atributo.",
-    val_total: "Valor total.",
-    val_desconto: "Valor do desconto.",
-    val_saldo_principal: "Valor do saldo principal.",
-    val_saldo_total: "Valor do saldo total.",
-    val_saldo_atual: "Valor do saldo atual.",
-    qtd_dias_atraso: "Quantidade de dias em atraso.",
-    dat_atraso_orig_acordo: "Data do atraso na origem do acordo.",
-    id_acordo_usuario: "Identificador do usuário do acordo.",
-    nom_acordo_usuario: "Nome do usuário do acordo.",
-    id_acordo_assessoria: "Identificador da assessoria do acordo.",
-    nom_acordo_assessoria: "Nome da assessoria do acordo.",
-    id_acordo_negociacao: "Identificador da negociação do acordo.",
-    nom_acordo_negociacao: "Nome da negociação do acordo.",
-    tip_acordo_meio_pagto: "Tipo de meio de pagamento do acordo.",
-    dat_referencia: "Data de referência."
-  }
-  bigquery: {
-    labels: {
-      processo: "pfs_risco_tivea"
-    },
-    partitionBy: "dat_referencia",
-    requirePartitionFilter: true
-  }
-}
-pre_operations {
   DECLARE nom_processo STRING DEFAULT "cobranca_acordo.sqlx";
   DECLARE nom_tabela STRING DEFAULT "cobranca_acordo";
   DECLARE dat_ini_movimento DATE;
@@ -233,5 +183,4 @@ post_operations {
         after_rows_count - before_rows_count AS count
     ),
     "EXECUÇÃO FINALIZADA COM SUCESSO"
-  );'
-}
+  );
