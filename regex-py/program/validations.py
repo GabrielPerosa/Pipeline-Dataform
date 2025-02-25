@@ -11,6 +11,11 @@ variabels_words = {
 }
 
 def search_variables(array,file):
+    """
+    OBJETIVO: Buscar variaveis em um arquivo de texto.
+    
+    PARÂMETROS: Recebe uma string como conteudo.
+    """
     for word in array:
         match = re.search(fr"\b{word}\b",file)
         if match:
@@ -18,7 +23,12 @@ def search_variables(array,file):
         else:
             print(f"Commando {word}: \033[31mNONE\033[0m")
     
-def search_dates(file): 
+def search_dates(file):
+    """
+    OBJETIVO: Buscar datas em um arquivo de texto.
+
+    PARÂMETROS: Recebe uma string como conteudo.
+    """
     dates = re.findall(r'\d{4}-\d{2}-\d{2}',file)
     if dates:
         print(f"Commando {dates}: \033[32mOK\033[0m")
@@ -26,6 +36,11 @@ def search_dates(file):
         print(f"Commando {dates}: \033[31mNONE\033[0m")
 
 def find_name(output_name, name_to_find, file):
+    """
+    OBJETIVO: Buscar um nome em um arquivo de texto.
+
+    PARÂMETROS: Recebe uma string como conteudo.
+    """
     pattern_prefix = fr'{name_to_find}:\s*["\']([A-Za-z0-9_]+)["\']\s*,?'
     pattern_name= fr'["\']([A-Za-z0-9_]+)["\']\s*,?'
     name = re.search(pattern_prefix, file)
@@ -37,17 +52,12 @@ def find_name(output_name, name_to_find, file):
     else:
         print(f"Nome da {output_name} não encontrado.")
     
-
-"""
-    OBJETIVO:   Validar se há presença de palavra-chaves especificadas
+def validation_if_exists(content):
+    """
+    OBJETIVO:   Validar se há presença de palavra-chaves especificadas.
     
-    PARÂMETROS: Recebe uma string como conteudo e outra 
-                como nome do arquivo que serão usados para
-                verificar ocorrências
-    Ex:
-        validation_if_exists(content)
-"""
-def validation_if_exists(content):    
+    PARÂMETROS: Recebe uma string como conteudo.
+    """
     # type do script
     type_config =  validate_type_in_config(content)
     
@@ -64,14 +74,12 @@ def validation_if_exists(content):
     else:
         print("\33[33mType não definido como incremental:{}\33[0m".format(type))
 
-"""
-    OBJETIVO: Validar se foi definida a partição da view e verificar se foi usada no código SQL
-    PARÂMETROS: o conteudo que passará por validação
-    Ex: 
-        validate_partitionDefinition(content)
-        
-"""
 def validate_partitionDefinition(content):
+    """
+    OBJETIVO: Validar se foi definida a partição da view e verificar se foi usada no código SQL.
+
+    PARÂMETROS: o conteudo que passará por validação.
+    """
     # Primeira parte da validação
     requirePartitionFilter = r'requirePartitionFilter:\s*true'
     result = re.search(requirePartitionFilter, content, re.IGNORECASE)
@@ -100,13 +108,12 @@ def validate_partitionDefinition(content):
     else:
         print("\033[33mpartitionBy não definido\033[0m")
     
-""" 
-    OBJETIVO: Validar se existe o comando para criar tabela se ela não existir
-    PARÂMETROS: O conteudo que passará por validação
-    Ex: 
-        validate_create_table(content)
-"""
 def validate_create_table(content):
+    """ 
+    OBJETIVO: Validar se existe o comando para criar tabela se ela não existir.
+
+    PARÂMETROS: O conteudo que passará por validação.
+    """
     # Verifica se existe create table if not exists 
     create_table_pattern = r'pre_operations\s*\{\s*CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS'
     result = re.search(create_table_pattern, content, re.IGNORECASE)
@@ -116,21 +123,25 @@ def validate_create_table(content):
     else:
         print("\033[33m--> Não há CREATE TABLE IF NOT EXISTS em pre_operations\033[0m")
 
-"""
-    OBJETIVO: Validar se o tipo da configuração do script é incremental ou não 
-    PARÂMETROS: O conteúdo que passará por validação
-    Ex: 
-        validate_type_in_config(content)
-"""
 def validate_type_in_config(content):
+    """
+    OBJETIVO: Validar se o tipo da configuração do script é incremental ou não.
+
+    PARÂMETROS: O conteúdo que passará por validação.
+
+    RETORNO: True se o tipo for incremental.
+    """
     # Verifica se type = incremental
     incremental_pattern = r'type:\s*"([^"]+)"'
     result = re.search(incremental_pattern, content)
     return result.group(1)
 
-
-
 def create_sql_for_validate(content, file_name):
+    """
+    OBJETIVO: Criar um arquivo SQL para validar se a tabela existe.
+
+    PARâMETROS: O conteúdo que passará por validação e o nome do arquivo.
+    """
     sql_folder = './sql_files_for_tests'
 
     # Padrão para encontrar código SQL
@@ -158,71 +169,50 @@ def create_sql_for_validate(content, file_name):
             file.write(sql_cleaned)
             print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
 
-"""
-    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_DATE()' no script SQL.
-    PARÂMETROS:
-        content (str): Conteúdo do script SQL a ser analisado.
-    Ex:
-        validate_where_clause(conteudo_script)
-"""
-
 def validate_where_clause(content):
+    """
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_DATE()' no script SQL.
+
+    PARÂMETROS: Content (str): Conteúdo do script SQL a ser analisado.
+    """
     where_pattern = r'WHERE\s+([^;]*\s*<=\s*CURRENT_DATE\(\)\s*[^;]*)'
     where_matches = re.findall(where_pattern, content, re.IGNORECASE)
     
     if not where_matches:
         print("\033[33m--> Nenhuma cláusula WHERE <= CURRENT_DATE encontrada no script\033[0m")
-        return
-    
     print(f"--> Cláusulas WHERE <= CURRENT_DATE encontradas: \033[33m{len(where_matches)}\033[0m")
-    
-
-"""
-    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '< CURRENT_DATE()' no script SQL.
-    PARÂMETROS:
-        content (str): Conteúdo do script SQL a ser analisado.
-    Ex:
-        validate_where_clause2(conteudo_script)
-"""
 
 def validate_where_clause2(content):
+    """
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '< CURRENT_DATE()' no script SQL.
+
+    PARÂMETROS: Content (str): Conteúdo do script SQL a ser analisado.
+    """
     where_pattern = r'WHERE\s+([^;]*\s*<\s*CURRENT_DATE\(\)\s*[^;]*)'
     where_matches = re.findall(where_pattern, content, re.IGNORECASE)
     
     if not where_matches:
         print("\033[33m--> Nenhuma cláusula WHERE < CURRENT_DATE encontrada no script\033[0m")
-        return
-    
     print(f"--> Cláusulas WHERE < CURRENT_DATE encontradas: \033[33m{len(where_matches)}\033[0m")
 
-
-"""
-    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_TIMESTAMP()' no script SQL.
-    PARÂMETROS:
-        content (str): Conteúdo do script SQL a ser analisado.
-    Ex:
-        validate_where_clause3(conteudo_script)
-"""
-
 def validate_where_clause3(content):
+    """
+    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_TIMESTAMP()' no script SQL.
+    PARÂMETROS: Content (str): Conteúdo do script SQL a ser analisado.
+    """
     where_pattern = r'WHERE\s+([^;]*\s*<=\s*CURRENT_TIMESTAMP()\(\)\s*[^;]*)'
     where_matches = re.findall(where_pattern, content, re.IGNORECASE)
     
     if not where_matches:
         print("\033[33m--> Nenhuma cláusula WHERE <= CURRENT_TIMESTAMP() encontrada no script\033[0m")
-        return
-    
     print(f"--> Cláusulas WHERE <= CURRENT_TIMESTAMP() encontradas: \033[33m{len(where_matches)}\033[0m")
 
-
-
-"""
-    OBJETIVO: centralizar e executar funções de validação. Caso haja erro, retorna uma exceção
-    PARÂMETROS: Recebe uma string como conteudo e outra como nome do arquivo
-    Ex:
-        result = exec_validations(content, file_name)
-"""
 def exec_validations(content, file_name):
+    """
+    OBJETIVO: centralizar e executar funções de validação. Caso haja erro, retorna uma exceção.
+    
+    PARÂMETROS: Recebe uma string como conteudo e outra como nome do arquivo.
+    """
     try:
         print(f"Iniciando validação em: {file_name}")
         validate_where_clause(content)
@@ -232,7 +222,6 @@ def exec_validations(content, file_name):
         validate_create_table(content)
         validation_if_exists(content)
         create_sql_for_validate(content, file_name)
-
         find_name("dataset","processo",content)
         find_name("tabela","name",content)
         find_name("partição","partitionBy",content)
