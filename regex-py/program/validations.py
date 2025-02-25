@@ -1,6 +1,43 @@
 import re
 import os
 
+variabels_words = {
+    "BETWEEN",
+    "AND",
+    "OR",
+    "NOT",
+    "IN",
+    "@@query_label"
+}
+
+def search_variables(array,file):
+    for word in array:
+        match = re.search(fr"\b{word}\b",file)
+        if match:
+            print(f"Commando {word}: \033[32mOK\033[0m")
+        else:
+            print(f"Commando {word}: \033[31mNONE\033[0m")
+    
+def search_dates(file): 
+    dates = re.findall(r'\d{4}-\d{2}-\d{2}',file)
+    if dates:
+        print(f"Commando {dates}: \033[32mOK\033[0m")
+    else:
+        print(f"Commando {dates}: \033[31mNONE\033[0m")
+
+def find_name(output_name, name_to_find, file):
+    pattern_prefix = fr'{name_to_find}:\s*["\']([A-Za-z0-9_]+)["\']\s*,?'
+    pattern_name= fr'["\']([A-Za-z0-9_]+)["\']\s*,?'
+    name = re.search(pattern_prefix, file)
+    repeated = re.findall(pattern_name, file)
+    
+    if repeated:
+        count_often = len(repeated)
+        print(f"Nome da {output_name}: {name.group(1)}  REPETIÇÕES: {count_often}")
+    else:
+        print(f"Nome da {output_name} não encontrado.")
+    
+
 """
     OBJETIVO:   Validar se há presença de palavra-chaves especificadas
     
@@ -26,15 +63,6 @@ def validation_if_exists(content):
                 raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
     else:
         print("\33[33mType não definido como incremental:{}\33[0m".format(type))
-
-    # Itens a validar
-    item = '@@query_label'
-    result = re.search(item, content)
-    
-    if(result):
-        print("--> {}: \033[33mOK\033[0m".format(item))
-    else:
-        raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
 
 """
     OBJETIVO: Validar se foi definida a partição da view e verificar se foi usada no código SQL
@@ -204,5 +232,11 @@ def exec_validations(content, file_name):
         validate_create_table(content)
         validation_if_exists(content)
         create_sql_for_validate(content, file_name)
+
+        find_name("dataset","processo",content)
+        find_name("tabela","name",content)
+        find_name("partição","partitionBy",content)
+        search_variables(variabels_words,content)
+    
     except Exception as e:
         return e
