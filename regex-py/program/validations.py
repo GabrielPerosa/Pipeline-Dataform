@@ -100,7 +100,14 @@ def validate_type_in_config(content):
     result = re.search(incremental_pattern, content)
     return result.group(1)
 
-
+"""
+    OBJETIVO: criar arquivos .sql que serão avaliados pelo SQL Fluff na pipeline
+    PARÂMETROS: Recebe uma string como conteudo e outra 
+                como nome do arquivo que serão usados para
+                criar o arquivo
+    Ex:
+        create_sql_for_validate(content, file_name)
+"""
 
 def create_sql_for_validate(content, file_name):
     sql_folder = './sql_files_for_tests'
