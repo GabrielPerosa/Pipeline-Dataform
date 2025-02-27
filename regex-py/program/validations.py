@@ -17,11 +17,11 @@ def search_variables(array,file):
     PARÂMETROS: Recebe uma string como conteudo.
     """
     for word in array:
-        match = re.search(fr"\b{word}\b",fil, ere.IGNORECASE)
+        match = re.search(fr"\b{word}\b", file, re.IGNORECASE)
         if match:
-            print(f"Commando {word}: \033[32mOK\033[0m")
+            print(f"Commando {word}: OK")
         else:
-            print(f"Commando {word}: \033[31mNONE\033[0m")
+            print(f"Commando {word}: NONE")
     
 def search_dates(file):
     """
@@ -29,11 +29,11 @@ def search_dates(file):
 
     PARÂMETROS: Recebe uma string como conteudo.
     """
-    dates = re.findall(r'\d{4}-\d{2}-\d{2}',file)
+    dates = re.findall(r'\d{4}-\d{2}-\d{2}', file)
     if dates:
-        print(f"Commando {dates}: \033[32mOK\033[0m")
+        print(f"Commando {dates}: OK")
     else:
-        print(f"Commando {dates}: \033[31mNONE\033[0m")
+        print(f"Commando {dates}: NONE")
 
 def find_name(output_name, name_to_find, file):
     """
@@ -62,17 +62,17 @@ def validation_if_exists(content):
     type_config =  validate_type_in_config(content)
     
     if (type_config == 'incremental'):
-        print("--> Type definido para: \33[33m{}\33[0m".format(type_config))
+        print("--> Type definido para: {}".format(type_config))
         
         items = ['updatePartitionFilter', 'uniqueKey']
         for i in items:
             result = re.search(i, content)
             if (result):
-                print("--> {}: \033[33mOK\033[0m".format(i))
+                print("--> {}: OK".format(i))
             else:
                 raise Exception('Erro: "{}" não encontrado no arquivo'.format(i))
     else:
-        print("\33[33mType não definido como incremental:{}\33[0m".format(type))
+        print("Type não definido como incremental: {}".format(type))
 
 def validate_partitionDefinition(content):
     """
@@ -84,7 +84,7 @@ def validate_partitionDefinition(content):
     requirePartitionFilter = r'requirePartitionFilter:\s*true'
     result = re.search(requirePartitionFilter, content, re.IGNORECASE)
     if (result):
-        print("--> requirePartitionFilter definido como \033[33mTRUE\033[0m")
+        print("--> requirePartitionFilter definido como TRUE")
     else:
         raise Exception('Erro: requirePartitionFilter não foi definido como true')
 
@@ -94,19 +94,19 @@ def validate_partitionDefinition(content):
 
     if(result):
         partition_name = result.group(1)
-        print("--> partitionBy foi definido: \033[33m{} \033[0m ".format(partition_name))
+        print("--> partitionBy foi definido: {}".format(partition_name))
         
         partitionBy = r'PARTITION BY\s+(.*)'
         partition_name_in_sql = re.search(partitionBy, content, re.IGNORECASE)
         
         if not (result):
-            print("\033[33mPartição não está sendo usada no código SQL\033[0m")
+            print("Partição não está sendo usada no código SQL")
         elif ( 0 > partition_name_in_sql.group(1).find(partition_name)):
-            print("\033[33mNome da partição está diferente no código SQL\033[0m")
+            print("Nome da partição está diferente no código SQL")
         else:
             print("--> Partição está sendo usada no código SQL")
     else:
-        print("\033[33mpartitionBy não definido\033[0m")
+        print("partitionBy não definido")
     
 def validate_create_table(content):
     """ 
@@ -119,9 +119,9 @@ def validate_create_table(content):
     result = re.search(create_table_pattern, content, re.IGNORECASE)
     
     if (result):
-        print("--> CREATE TABLE IF NOT EXISTS em pre_operations\33[33m: OK\033[0m")
+        print("--> CREATE TABLE IF NOT EXISTS em pre_operations: OK")
     else:
-        print("\033[33m--> Não há CREATE TABLE IF NOT EXISTS em pre_operations\033[0m")
+        print("--> Não há CREATE TABLE IF NOT EXISTS em pre_operations")
 
 def validate_type_in_config(content):
     """
@@ -167,7 +167,7 @@ def create_sql_for_validate(content, file_name):
         # Grava arquivo para realizar teste
         with open(path, "w", encoding="utf-8") as file:
             file.write(sql_cleaned)
-            print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
+            print("Gravado com Sucesso: {} ".format(file_name))
 
 def validate_where_clause(content):
     # Padrão regex para encontrar cláusulas WHERE com as condições especificadas
