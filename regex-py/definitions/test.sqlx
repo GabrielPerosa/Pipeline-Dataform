@@ -1,0 +1,5 @@
+SELECT * FROM tabela WHERE data <= CURRENT_DATE();
+    SELECT * FROM outra WHERE valor < CURRENT_DATE();
+    INSERT INTO tabela VALUES (1, 2, 3);
+    SELECT * FROM temp WHERE timestamp <= CURRENT_TIMESTAMP();
+    SELECT * FROM normal WHERE data > 2023-01-01;
