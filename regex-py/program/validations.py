@@ -181,9 +181,9 @@ def validate_where_clause(content):
     
     # Exibe mensagem colorida no terminal
     if num_matches == 0:
-        print("\033[31mNenhuma cláusula WHERE com as condições especificadas encontrada.\033[0m")
+        print("Nenhuma cláusula WHERE com as condições especificadas encontrada.")
     else:
-        print(f"\033[32mEncontradas {num_matches} cláusulas WHERE com as condições especificadas.\033[0m")
+        print(f"Encontradas {num_matches} cláusulas WHERE com as condições especificadas.")
         # Opcional: listar as cláusulas encontradas
         for i, match in enumerate(matches, 1):
             print(f"Cláusula {i}: {match[0].strip()}")
