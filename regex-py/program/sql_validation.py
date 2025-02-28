@@ -53,7 +53,9 @@ def convert_sqlx_to_bigquery_sql(content, variables):
     sql_only = only_sql_to_bigquery(sql_with_valid_dates)
     cleaned_sql = sub_dataset_table(sql_only)
     ready_sql = cast_to_safe_cast(cleaned_sql)
-
+    # Grava arquivo para realizar teste
+    print(ready_sql)
+    
     return ready_sql
 
 def sub_dates_in_sqlcode(file_content, dates):
@@ -62,7 +64,8 @@ def sub_dates_in_sqlcode(file_content, dates):
         i = 0
         for m in matches:
             print(m)
-            file_content = re.sub(fr'\b{m}\b', str(dates[i]), file_content)
+            date_value = dates[i]
+            file_content = re.sub(fr'\b{m}\b', f"CAST('{date_value}' AS DATE)", file_content)
             i+=1
     return file_content
 
@@ -95,6 +98,7 @@ def only_sql_to_bigquery(file_content):
   file_content = file_content.strip()
 
   return file_content
+
 
 files, _ = load_files('./sql_files_for_tests/')
 for f in files:
