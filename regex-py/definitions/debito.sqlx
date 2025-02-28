@@ -1,0 +1,128 @@
+config {
+  type: "incremental",
+  name: "adesao_deb_automatico",
+  description: "Carrega dados de adesão ao débito automático de contas digitais.",
+  tags: [],
+  columns: {
+    id_adesao_deb_automatico: "Identificador da adesão ao débito automático.",
+    dth_data_adesao: "Data e hora da adesão ao débito automático.",
+    id_conta_digital: "Identificador da conta digital.",
+    id_conta_credito: "Identificador da conta de crédito.",
+    num_cpf_cliente: "CPF do cliente.",
+    id_tipo_deb_automatico: "Identificador do tipo de débito automático.",
+    nom_tipo_deb_automatico: "Nome do tipo de débito automático.",
+    nom_user_adesao_deb_automatico: "Usuário que realizou a adesão.",
+    dth_canc_deb_automatico: "Data e hora do cancelamento do débito automático.",
+    nom_user_canc_deb_automatico: "Usuário que cancelou o débito automático.",
+    dth_ult_atu_so: "Data e hora da última atualização.",
+    num_seq_ult_alteracao: "Sequência da última alteração.",
+    dth_inclusao_reg: "Data e hora da inclusão do registro.",
+    des_origem: "Origem do dado.",
+    num_anomes_ads_deb_autm: "Ano e mês da adesão ao débito automático."
+  },
+  bigquery: {
+    labels: {
+      processo: "pfs_unificacao_pefisa"
+    },
+    partitionBy: "num_anomes_ads_deb_autm",
+    requirePartitionFilter: true,
+    clusterBy: ["des_origem"]
+  }
+}
+pre_operations {
+  DECLARE nom_processo STRING DEFAULT "adesao_deb_automatico.sqlx";
+  DECLARE nom_tabela STRING DEFAULT "adesao_deb_automatico";
+  DECLARE dat_ini_movimento DATE;
+  DECLARE dat_fim_movimento DATE;
+  DECLARE dth_ult_data_processada TIMESTAMP;
+  DECLARE dth_inicio_execucao TIMESTAMP;
+  DECLARE atual_ult_data_processada TIMESTAMP;
+  DECLARE before_rows_count INT64;
+  DECLARE after_rows_count INT64;
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.get_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    dth_ult_data_processada,
+    dth_inicio_execucao
+  );
+  SET before_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'adesao_deb_automatico'
+  );
+}
+WITH deb_autm AS (
+  SELECT
+    da.id AS id_adesao_deb_automatico,
+    da.dataadesao AS dth_data_adesao,
+    da.id_contadigital AS id_conta_digital,
+    da.id_contacredito AS id_conta_credito,
+    da.id_tipodebitoautomatico AS id_tipo_deb_automatico,
+    da.descricaotipodebitoautomatico AS nom_tipo_deb_automatico,
+    da.responsavel AS nom_user_adesao_deb_automatico,
+    da.datacancelamento AS dth_canc_deb_automatico,
+    da.responsavelcancelamento AS nom_user_canc_deb_automatico,
+    da.dh_relatorio AS dth_ult_atu_so,
+    da.operation_sequence AS num_seq_ult_alteracao,
+    CURRENT_TIMESTAMP() AS dth_inclusao_reg,
+    da.production_date AS num_anomes_ads_deb_autm,
+    'DOCK' AS des_origem
+  FROM
+    ${ref("pfs_raw_conductor", "adesao_debito_automatico")} AS da
+  WHERE da.production_date BETWEEN dat_ini_movimento AND dat_fim_movimento
+), conta AS (
+  SELECT
+    cta.ct_id_conta,
+    CAST(cli.pf_cpf AS INT64) AS num_cpf_cliente
+  FROM
+    ${ref("pfs_raw_conductor", "conta")} AS cta
+  INNER JOIN ${ref("pfs_raw_conductor", "cliente")} AS cli ON cli.pf_id_pessoafisica = cta.ct_id_pessoa
+  WHERE cta.ct_id_produto = 7 AND cli.production_date BETWEEN dat_ini_movimento AND dat_fim_movimento
+  AND cta.production_date BETWEEN dat_ini_movimento AND dat_fim_movimento
+), resultado_final AS (
+  SELECT
+    deb.id_adesao_deb_automatico,
+    deb.dth_data_adesao,
+    deb.id_conta_digital,
+    deb.id_conta_credito,
+    IFNULL(c.num_cpf_cliente, NULL) AS num_cpf_cliente,
+    deb.id_tipo_deb_automatico,
+    deb.nom_tipo_deb_automatico,
+    deb.nom_user_adesao_deb_automatico,
+    deb.dth_canc_deb_automatico,
+    deb.nom_user_canc_deb_automatico,
+    deb.dth_ult_atu_so,
+    deb.num_seq_ult_alteracao,
+    deb.dth_inclusao_reg,
+    deb.des_origem,
+    deb.num_anomes_ads_deb_autm
+  FROM deb_autm AS deb
+  LEFT JOIN conta AS c ON c.ct_id_conta = deb.id_conta_digital
+)
+SELECT * FROM resultado_final
+post_operations {
+  SET after_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'adesao_deb_automatico'
+  );
+  SET atual_ult_data_processada = (
+    SELECT max(dth_ult_atu_so)
+    FROM ${self()}
+    WHERE dth_ult_atu_so >= dth_ult_data_processada
+    AND num_anomes_ads_deb_autm BETWEEN dat_ini_movimento AND dat_fim_movimento
+    LIMIT 1
+  );
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.insert_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    atual_ult_data_processada,
+    dth_inicio_execucao,
+    (SELECT after_rows_count - before_rows_count AS count),
+    "EXECUÇÃO FINALIZADA COM SUCESSO"
+  );
+}
