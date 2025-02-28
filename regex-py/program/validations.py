@@ -135,7 +135,16 @@ def validate_type_in_config(content):
     incremental_pattern = r'type:\s*"([^"]+)"'
     result = re.search(incremental_pattern, content)
     return result.group(1)
-
+def validate_where_clause(content):
+    # Padrão regex para encontrar cláusulas WHERE com as condições especificadas
+    pattern = r'(WHERE\s+[^;]*\s*(<=\s*CURRENT_DATE\(\)|<\s*CURRENT_DATE\(\)|<=\s*CURRENT_TIMESTAMP\(\))\s*[^;]*)'
+    
+    # Busca todas as ocorrências no conteúdo, ignorando maiúsculas/minúsculas
+    matches = re.findall(pattern, content, re.IGNORECASE)
+    
+    # Conta o número de cláusulas encontradas
+    num_matches = len(matches)
+    
 def create_sql_for_validate(content, file_name):
     """
     OBJETIVO: Criar um arquivo SQL para validar se a tabela existe.
@@ -145,15 +154,14 @@ def create_sql_for_validate(content, file_name):
     sql_folder = './sql_files_for_tests'
 
     # Padrão para encontrar código SQL
-    pattern = r"pre_operations\s*{.*?}$"
-
+    pattern = r"pre_operations(.*?)post_operations"
     # busca a incidencia no conteudo
     match = re.search(pattern, content, re.DOTALL)
     if match:
         # obter codigo
         sql_code = match.group() 
         lines = sql_code.splitlines()
-
+        
         # remove linhas desnecessárias
         sql_cleaned = '\n'.join(lines[1:-1])
             
@@ -167,18 +175,8 @@ def create_sql_for_validate(content, file_name):
         # Grava arquivo para realizar teste
         with open(path, "w", encoding="utf-8") as file:
             file.write(sql_cleaned)
-            print("Gravado com Sucesso: {} ".format(file_name))
+            print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
 
-def validate_where_clause(content):
-    # Padrão regex para encontrar cláusulas WHERE com as condições especificadas
-    pattern = r'(WHERE\s+[^;]*\s*(<=\s*CURRENT_DATE\(\)|<\s*CURRENT_DATE\(\)|<=\s*CURRENT_TIMESTAMP\(\))\s*[^;]*)'
-    
-    # Busca todas as ocorrências no conteúdo, ignorando maiúsculas/minúsculas
-    matches = re.findall(pattern, content, re.IGNORECASE)
-    
-    # Conta o número de cláusulas encontradas
-    num_matches = len(matches)
-    
     # Exibe mensagem colorida no terminal
     if num_matches == 0:
         print("Nenhuma cláusula WHERE com as condições especificadas encontrada.")
@@ -199,7 +197,7 @@ def exec_validations(content, file_name):
         validate_where_clause(content)
         validate_partitionDefinition(content)
         validate_create_table(content)
-        validation_if_exists(content)
+        #validation_if_exists(content)
         create_sql_for_validate(content, file_name)
         find_name("dataset","processo",content)
         find_name("tabela","name",content)
