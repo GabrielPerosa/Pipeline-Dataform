@@ -1,5 +1,9 @@
 import re
 import os
+from files import load_files, get_content
+from google.cloud import bigquery
+
+dates = ['2023-01-01', '2023-12-31']
 
 def create_sql_for_validate(content, file_name):
     """
@@ -34,7 +38,7 @@ def create_sql_for_validate(content, file_name):
             file.write(sql_cleaned)
             print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
 
-def converter_sqlx_para_bigquery(content, variables):
+def convert_sqlx_to_bigquery_sql(content, variables):
     """
     Converte código SQLX para SQL do BigQuery, removendo declarações de variáveis.
 
@@ -45,17 +49,66 @@ def converter_sqlx_para_bigquery(content, variables):
     Returns:
         str: Código SQL do BigQuery convertido.
     """
+    sql_with_valid_dates = sub_dates_in_sqlcode(content, variables)
+    sql_only = only_sql_to_bigquery(sql_with_valid_dates)
+    cleaned_sql = sub_dataset_table(sql_only)
+    ready_sql = cast_to_safe_cast(cleaned_sql)
 
-    # Remove declarações de variáveis
-    lines = content.splitlines()
-    cleaned_lines = [
-        line for line in lines if not re.match(r"DECLARE\s+\w+(\s+DATE\s+.*)?;", line, re.IGNORECASE)
-    ]
-    sql_cleaned = "\n".join(cleaned_lines)
+    return ready_sql
 
-    # Substitui variáveis por valores literais
-    codigo_bigquery = codigo_sem_declaracoes
-    for variavel, valor in variaveis_valores.items():
-        codigo_bigquery = re.sub(r"\b" + variavel + r"\b", str(valor), codigo_bigquery)
+def sub_dates_in_sqlcode(file_content, dates):
+    matches = re.findall(r"DECLARE\s+(\w+)\s+DATE.*?;", file_content, re.IGNORECASE)
+    if(matches):
+        i = 0
+        for m in matches:
+            print(m)
+            file_content = re.sub(fr'\b{m}\b', str(dates[i]), file_content)
+            i+=1
+    return file_content
 
-    return codigo_bigquery
+def sub_dataset_table(file_content):
+  pattern = r"\$\{ref\('([^']+)',\s*'([^']+)'\)\}"
+  matches = re.findall(pattern, file_content, re.IGNORECASE)
+  
+  for match in matches:
+    # Obtendo dataset e tabela de cada correspondência
+    dataset, table = match
+    path = "{}.{}".format(dataset, table)
+
+    file_content = re.sub(r"\$\{ref(.*?)}", path, file_content)
+
+  return file_content
+
+def cast_to_safe_cast(content):
+  pattern = r"\bCAST\b"
+  content = re.sub(pattern, "SAFE_CAST", content)
+  return content
+
+def only_sql_to_bigquery(file_content):
+  pattern = r"(?s)DECLARE.*?\n}"
+  matches = re.search(pattern, file_content, re.IGNORECASE)
+  
+  text_to_remove = matches.group(0)
+
+  # Removendo parte inútil e limpando espaços vazios 
+  file_content = file_content.replace(text_to_remove, "")
+  file_content = file_content.strip()
+
+  return file_content
+
+files, _ = load_files('./sql_files_for_tests/')
+for f in files:
+    content = get_content('./sql_files_for_tests/', f)
+    sub_dataset_table(content)
+    sql_code = convert_sqlx_to_bigquery_sql(content, dates)
+    
+    client = bigquery.Client(project='integracaohomologado')
+
+    job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
+
+    # Start the query, passing in the extra configuration.
+    query_job = client.query(str(sql_code), job_config)  # Make an API request.
+
+    print(" {} bytes processados aproximadamente.".format(query_job.total_bytes_processed))
+
+    

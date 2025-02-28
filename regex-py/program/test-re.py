@@ -91,15 +91,6 @@ origem_acordo AS (
    
                     """
 
-def sub_dates_in_sqlcode(file_content, dates):
-    matches = re.findall(r"DECLARE\s+(\w+)\s+DATE.*?;", file_content, re.IGNORECASE)
-    if(matches):
-        i = 0
-        for m in matches:
-            print(m)
-            file_content = re.sub(fr'\b{m}\b', str(dates[i]), file_content)
-            i+=1
-    return file_content
 
 
 
@@ -129,8 +120,15 @@ def sub_dataset_table(file_content):
   return path
 
 def only_sql_to_bigquery(file_content):
-  pattern = r"^DECLARE(.*?)^\s*\}\s*$"
+  pattern = r"(?s)DECLARE.*?\n}"
   matches = re.search(pattern, file_content, re.IGNORECASE)
-  print(matches)
+  
+  text_to_remove = matches.group(0)
+
+  # Limpando espaços vazios
+  file_content = file_content.replace(text_to_remove, "")
+  file_content = file_content.strip()
+
+  return file_content
 
 only_sql_to_bigquery(file_content)
