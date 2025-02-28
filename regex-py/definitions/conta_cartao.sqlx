@@ -1,0 +1,210 @@
+config {
+  type: "incremental",
+  name: "mvto_portabilidade_salario",
+  description: "Rotina ETL para enriquecer dados de movimentação de portabilidade de salário com informações de conta e cliente.",
+  tags: [],
+  columns: {
+    num_cpf_cnpj_cliente: "Número de CPF/CNPJ do cliente.",
+    dat_movimento: "Data do movimento.",
+    cod_tipo_conta_corrente: "Código do tipo de conta corrente.",
+    cod_conta_corrente: "Código da conta corrente.",
+    dv_conta_corrente: "Dígito verificador da conta corrente.",
+    cod_tipo_transacao: "Código do tipo de transação.",
+    val_transacao: "Valor da transação.",
+    des_situacao_doc: "Descrição da situação do documento.",
+    num_anomesdia_movto: "Data do movimento no formato AAAA-MM-DD.",
+    dth_inclusao_reg: "Data e hora de inclusão do registro.",
+    id_cliente: "Identificador único do cliente na base unificada de clientes.",
+    id_conta_digital: "Identificador único da conta digital.Estará preenchido somente quando for produto = 7.",
+    id_produto_conta_digital: "Identificador único do produto da conta digital.Estará preenchido somente quando for produto = 7"
+  },
+  bigquery: {
+    labels: {
+      processo: "pfs_unificacao_pefisa",
+    },
+    partitionBy: "num_anomesdia_movto",
+    requirePartitionFilter: true
+  }
+}
+pre_operations {
+  DECLARE nom_processo STRING DEFAULT "04_01_02_MVTO_PORTABILIDADE_SALARIO.sqlx";
+  DECLARE nom_tabela STRING DEFAULT "mvto_portabilidade_salario";
+  DECLARE dat_ini_movimento DATE;
+  DECLARE dat_fim_movimento DATE;
+  DECLARE dth_ult_data_processada TIMESTAMP;
+  DECLARE dth_inicio_execucao TIMESTAMP;
+  DECLARE atual_ult_data_processada TIMESTAMP;
+  DECLARE insert_rows_count INT64;
+  DECLARE anomes_dat_fim_movto DATE;
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.get_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    dth_ult_data_processada,
+    dth_inicio_execucao
+  );
+  SET dat_ini_movimento = DATE_ADD(dat_ini_movimento, INTERVAL 1 DAY);
+  
+  SET dat_fim_movimento = DATE_SUB(dat_fim_movimento, INTERVAL 1 DAY);
+  
+  SET anomes_dat_fim_movto = CAST(CONCAT(FORMAT_DATE('%Y-%m', dat_fim_movimento), '-01') AS DATE);
+}
+WITH CONTAGEM_CONTAS_POR_CPF AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        CASE
+            WHEN ct.cod_sit_conta = 0 THEN 0
+            ELSE 1
+        END AS ind_sit_conta,
+        COUNT(DISTINCT ct.id_conta) OVER(PARTITION BY ct.num_cpf_cliente) AS conta_count
+    FROM
+        ${ref("pfs_unificacao_pefisa", "conta")} AS ct
+    WHERE
+        ct.num_anomes_ads_conta <= anomes_dat_fim_movto
+        AND ct.id_produto_cartao = 7
+        AND ct.cod_conta_corrente IS NOT NULL
+ ),
+UNICA_CONTA AS (
+    SELECT
+        b.id_conta,
+        b.id_produto_cartao,
+        b.num_cpf_cliente,
+        b.cod_conta_corrente,
+        b.dv_conta_corrente,
+        b.dth_ads_conta,
+        b.cod_sit_conta,
+        b.des_sit_conta
+    FROM
+        CONTAGEM_CONTAS_POR_CPF AS b
+     WHERE
+        b.conta_count = 1
+),
+TRATA_VARIAS_CONTAS_PRE1 AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        ct.ind_sit_conta
+    FROM
+        CONTAGEM_CONTAS_POR_CPF AS ct
+     WHERE
+        ct.conta_count > 1
+),
+TRATA_VARIAS_CONTAS_PRE2 AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        ROW_NUMBER() OVER (PARTITION BY ct.num_cpf_cliente ORDER BY ct.ind_sit_conta ASC, ct.dth_ads_conta DESC) AS seq_conta
+    FROM
+        TRATA_VARIAS_CONTAS_PRE1 AS ct
+),
+VARIAS_CONTAS AS (
+    SELECT
+        vc.id_conta,
+        vc.id_produto_cartao,
+        vc.num_cpf_cliente,
+        vc.cod_conta_corrente,
+        vc.dv_conta_corrente,
+        vc.dth_ads_conta,
+        vc.cod_sit_conta,
+        vc.des_sit_conta
+    FROM
+        TRATA_VARIAS_CONTAS_PRE2 AS vc
+    WHERE
+        vc.seq_conta = 1
+),
+UNICA_CONTA_UNION AS (
+    select * from UNICA_CONTA
+    UNION ALL
+    select * from VARIAS_CONTAS
+),
+UNICA_CONTA_PRE AS (
+  SELECT
+        uc.id_conta,
+        uc.id_produto_cartao,
+        uc.num_cpf_cliente,
+        regexp_replace(uc.cod_conta_corrente," ", "") AS cod_conta_corrente,
+        regexp_replace(uc.dv_conta_corrente," ", "") AS dv_conta_corrente,
+        uc.dth_ads_conta,
+        uc.cod_sit_conta,
+        uc.des_sit_conta
+    FROM UNICA_CONTA_UNION AS uc
+),
+MVTO_PORTABILIDADE_SALARIO_BASE AS (
+    SELECT DISTINCT
+        cnpj_cpf_clicredtdtitlar1 AS num_cpf_cnpj_cliente,
+        dt_movto AS dat_movimento,
+        TP_CT_CREDTD AS cod_tipo_conta_corrente,
+        CAST(SUBSTR(CAST(CT_CREDTD AS STRING), 1, LENGTH(CAST(CT_CREDTD AS STRING)) - 1) AS STRING) AS cod_conta_corrente,
+        CAST(SUBSTR(CAST(CT_CREDTD AS STRING), LENGTH(CAST(CT_CREDTD AS STRING))) AS STRING) AS dv_conta_corrente,
+        COD_TIPO_LIQDC AS cod_tipo_transacao,
+        VALOR AS val_transacao,
+        SITUACAO_DOC AS des_situacao_doc,
+        num_anomesdia_movto,
+        CURRENT_TIMESTAMP() AS dth_inclusao_reg
+    FROM
+        ${ref("pfs_raw_matera", "vts_doc_recebido")}
+    WHERE
+        COD_TIPO_LIQDC = 'STR0037R2-DRSTR'
+        AND SITUACAO_DOC IN ('ACATADO', 'LANCAMENTO MANUAL')
+        AND num_anomesdia_movto BETWEEN dat_ini_movimento AND dat_fim_movimento
+),
+CLIENTE AS (
+  SELECT id_cliente, num_cpf_cnpj_cliente
+  FROM ${ref("pfs_unificacao_cliente", "cliente")}
+  WHERE num_cpf_cnpj_cliente > 0
+)
+SELECT
+    t1.*,
+    t2.id_cliente,
+    t3.id_conta AS id_conta_digital,
+    t3.id_produto_cartao AS id_produto_conta_digital
+FROM
+    MVTO_PORTABILIDADE_SALARIO_BASE AS t1
+LEFT OUTER JOIN
+    CLIENTE AS t2
+    ON t1.num_cpf_cnpj_cliente = t2.num_cpf_cnpj_cliente
+LEFT OUTER JOIN
+    UNICA_CONTA_PRE AS t3
+    ON t1.cod_conta_corrente = t3.cod_conta_corrente
+    AND t1.dv_conta_corrente = t3.dv_conta_corrente
+post_operations {
+  SET (insert_rows_count, atual_ult_data_processada) = (
+  SELECT AS STRUCT 
+    COUNT(*) AS insert_rows_count,
+    CAST(MAX(num_anomesdia_movto) AS timestamp) AS atual_ult_data_processada
+  FROM ${self()}
+  WHERE dth_inclusao_reg >= dth_inicio_execucao
+    AND num_anomesdia_movto BETWEEN dat_ini_movimento AND  dat_fim_movimento
+);
+
+CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.insert_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    coalesce(atual_ult_data_processada, dth_ult_data_processada),
+    dth_inicio_execucao,
+    insert_rows_count,
+    "EXECUÇÃO FINALIZADA COM SUCESSO"
+);
+}
