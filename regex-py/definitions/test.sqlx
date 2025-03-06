@@ -1,5 +1,124 @@
-SELECT * FROM tabela WHERE data <= CURRENT_DATE();
-    SELECT * FROM outra WHERE valor < CURRENT_DATE();
-    INSERT INTO tabela VALUES (1, 2, 3);
-    SELECT * FROM temp WHERE timestamp <= CURRENT_TIMESTAMP();
-    SELECT * FROM normal WHERE data > 2023-01-01;
+config {
+  type: "incremental",
+  name: "validacao_clausulas_where",
+  description: "Valida as cláusulas WHERE de diferentes tabelas com CURRENT_DATE e CURRENT_TIMESTAMP.",
+  tags: [],
+  columns: {
+    id_registro: "Identificador do registro.",
+    descricao: "Descrição do registro.",
+    data: "Data do registro.",
+    valor: "Valor do registro.",
+    timestamp: "Timestamp do registro."
+  },
+  bigquery: {
+    labels: {
+      processo: "validacao_sqlx",
+    },
+    partitionBy: "data",
+    requirePartitionFilter: true,
+  }
+}
+
+pre_operations {
+  DECLARE nom_processo STRING DEFAULT "validacao_clausulas_where.sqlx";
+  DECLARE nom_tabela STRING DEFAULT "validacao_clausulas_where";
+  DECLARE dat_ini_movimento DATE;
+  DECLARE dat_fim_movimento DATE;
+  DECLARE dth_ult_data_processada TIMESTAMP;
+  DECLARE dth_inicio_execucao TIMESTAMP;
+  DECLARE atual_ult_data_processada TIMESTAMP;
+  DECLARE before_rows_count INT64;
+  DECLARE after_rows_count INT64;
+
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.get_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    dth_ult_data_processada,
+    dth_inicio_execucao
+  );
+
+  SET before_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'validacao_clausulas_where'
+  );
+}
+
+WITH tabela_data AS (
+    SELECT 
+        id AS id_registro,
+        descricao,
+        data,
+        NULL AS valor,
+        NULL AS timestamp
+    FROM ${ref("schema_banco", "tabela")}
+    WHERE data <= CURRENT_DATE
+),
+outra_valor AS (
+    SELECT 
+        id AS id_registro,
+        descricao,
+        NULL AS data,
+        valor,
+        NULL AS timestamp
+    FROM ${ref("schema_banco", "outra")}
+    WHERE valor < CURRENT_DATE
+),
+temp_timestamp AS (
+    SELECT 
+        id AS id_registro,
+        descricao,
+        NULL AS data,
+        NULL AS valor,
+        timestamp
+    FROM ${ref("schema_banco", "temp")}
+    WHERE timestamp <= CURRENT_TIMESTAMP
+),
+normal_data AS (
+    SELECT 
+        id AS id_registro,
+        descricao,
+        data,
+        NULL AS valor,
+        NULL AS timestamp
+    FROM ${ref("schema_banco", "normal")}
+    WHERE data > '2023-01-01'
+),
+validacao_final AS (
+    SELECT * FROM tabela_data
+    UNION ALL
+    SELECT * FROM outra_valor
+    UNION ALL
+    SELECT * FROM temp_timestamp
+    UNION ALL
+    SELECT * FROM normal_data
+)
+SELECT * FROM validacao_final;
+
+post_operations {
+  SET after_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'validacao_clausulas_where'
+  );
+
+  SET atual_ult_data_processada = (
+    SELECT max(timestamp)
+    FROM ${self()}
+    WHERE timestamp >= dth_ult_data_processada
+    LIMIT 1
+  );
+
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.insert_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    atual_ult_data_processada,
+    dth_inicio_execucao,
+    (SELECT after_rows_count - before_rows_count AS count),
+    "EXECUÇÃO FINALIZADA COM SUCESSO"
+  );
+}
