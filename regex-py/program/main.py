@@ -22,9 +22,10 @@ for file in files:
 
     if (result == None):
         print("\033[31m ___ Sem erros em  {} ___\033[0m\n".format(file))
-        print(" ----- ")
+        print(" ------ ")
         print("Realizando avaliação de custo: ")
         sql_cost_validation(file_content, file)
+        print(" ------ ")
 
     else:
         print("Erro em \033[33m {} \033[0m - {}\n".format(file, result))

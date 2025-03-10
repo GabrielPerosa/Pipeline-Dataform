@@ -4,7 +4,7 @@ from files import load_files, get_content
 from google.cloud import bigquery
 from sql_treatment import sql_treatment
 
-dates = ['2024-01-01', '2025-02-01']
+dates = ['2024-01-01', '2025-02-01', '2025-03-01','2025-05-01']
 project_id = 'integracaohomologado'
 sql_folder = './sql_files_for_tests'
 
@@ -70,7 +70,7 @@ def sql_cost_validation(content, file_name):
         return
     # Realizando tratamentos nos arquivos
     sql_code = sql_treatment(content, dates)
-
+    print(sql_code)
     # Abrindo cliente BigQuery
     client = bigquery.Client(project=project_id)
     job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)

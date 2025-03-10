@@ -1,0 +1,315 @@
+Quantidade de arquivos: 6
+['test.sqlx', 'acordo.sqlx', 'conta_cartao.sqlx', 'seguro.sqlx', 'debito.sqlx', 'autorizacao_transacao.sqlx']
+
+Iniciando validação em: test.sqlx
+Nenhuma cláusula WHERE com as condições especificadas encontrada.
+--> requirePartitionFilter definido como TRUE
+--> partitionBy foi definido: data
+Erro em [33m test.sqlx [0m - 'NoneType' object has no attribute 'group'
+
+Iniciando validação em: acordo.sqlx
+Nenhuma cláusula WHERE com as condições especificadas encontrada.
+--> requirePartitionFilter definido como TRUE
+--> partitionBy foi definido: dat_referencia
+--> Partição está sendo usada no código SQL
+--> Não há CREATE TABLE IF NOT EXISTS em pre_operations
+Nome da dataset: pfs_risco_tivea  REPETIÇÕES: 17
+Nome da tabela: cobranca_acordo  REPETIÇÕES: 17
+Nome da partição: dat_referencia  REPETIÇÕES: 17
+Commando @@query_label: NONE
+Commando BETWEEN: OK
+Commando AND: OK
+Commando IN: NONE
+Commando OR: NONE
+Commando NOT: NONE
+[31m ___ Sem erros em  acordo.sqlx ___[0m
+
+ ------ 
+Realizando avaliação de custo: 
+Gravado com Sucesso:[33m acordo.sql [0m
+WITH acordo AS (
+  SELECT
+    id AS id_acordo_cobranca,
+    cliente AS id_cliente_externo,
+    cobrador AS id_cobrador,
+    tipo AS nom_modalidade_acordo,
+    numeroAcordo AS num_acordo,
+    numeroParcelas AS num_parcelas,
+    dataOperacao AS dat_operacao,
+    dataEmissao AS dat_emissao,
+    dataProcessamento AS dth_processamento,
+    dataHoraInclusao AS dth_inclusao_origem,
+    dataHoraModificacao AS dth_alteracao_origem,
+    dataVencimento AS dat_vencimento,
+    situacao AS ind_situacao,
+    taxaOperacao AS val_taxa_operacao,
+    valorPrincipal AS val_principal,
+    valorJuros AS val_juros,
+    valorPagoTributo AS val_atributo,
+    valorTotal AS val_total,
+    saldoPrincipal AS val_saldo_principal,
+    saldoTotal AS val_saldo_total,
+    saldoAtual AS val_saldo_atual,
+    diasAtraso AS qtd_dias_atraso,
+    production_date AS dat_referencia
+  FROM
+    pfs_risco_raw_tivea.acordo
+  WHERE
+    production_date BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+),
+acordo_linha AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY id_cliente_externo, num_acordo, dat_referencia ORDER BY COALESCE(SAFE_CAST(qtd_dias_atraso AS INT64), 0)
+ DESC) AS rn
+  FROM acordo
+),
+cliente AS (
+    SELECT
+        num_cpf_cnpj_cliente,
+        id_cliente_externo,
+        dat_referencia
+    FROM
+        pfs_risco_tivea.cobranca_cliente
+    WHERE
+        dat_referencia BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+),
+origem_acordo AS (
+    SELECT
+        dat_referencia,
+        id_acordo_cobranca,
+        dat_vencimento AS dat_atraso_orig_acordo,
+        COALESCE(SAFE_CAST(val_desconto_total AS INT64), 0) + COALESCE(SAFE_CAST(val_desc_permanencia AS INT64), 0) AS val_desconto_total,
+        ROW_NUMBER() OVER (PARTITION BY id_acordo_cobranca, dat_referencia ORDER BY num_ordem_contrato DESC) AS rn
+    FROM
+        integracaohomologado.pfs_risco_tivea.cobranca_origem_acordo
+    WHERE
+        dat_referencia BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+),
+neg AS (
+    SELECT
+        id AS id_acordo_cobranca,
+        negociacao.nome AS nom_acordo_negociacao,
+        negociacao.id AS id_acordo_negociacao,
+        negociacao.modalidade.nome AS nom_modalidade_acordo,
+        production_date AS dat_referencia
+    FROM
+        pfs_risco_raw_tivea.acordo
+    WHERE
+        production_date BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+),
+tip_pag_assess_user AS (
+    SELECT
+        id AS id_acordo_cobranca,
+        meioPagamento.id AS id_acordo_pagto,
+        meioPagamento.tipo AS tip_acordo_meio_pagto,
+        meioPagamento.cobrador.nome AS nom_cobrador,
+        assessoria.id AS id_acordo_assessoria,
+        assessoria.nome AS nom_acordo_assessoria,
+        usuario.id AS id_acordo_usuario,
+        usuario.nome AS nom_acordo_usuario,
+        production_date AS dat_referencia
+    FROM
+        pfs_risco_raw_tivea.acordo
+    WHERE
+        production_date BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+)
+SELECT
+    SAFE_CAST(aco.id_acordo_cobranca AS INT64) AS id_acordo_cobranca,
+    SAFE_CAST(aco.id_cliente_externo AS INT64) AS id_cliente_externo,
+    cli.num_cpf_cnpj_cliente,
+    aco.id_cobrador,
+    tip.nom_cobrador,
+    neg.nom_modalidade_acordo AS tip_modalidade_acordo,
+    SAFE_CAST(aco.num_acordo AS INT64) AS num_acordo,
+    SAFE_CAST(aco.num_parcelas AS INT64) AS num_parcelas,
+    SAFE_CAST(aco.dat_operacao AS TIMESTAMP) AS dat_operacao,
+    SAFE_CAST(aco.dat_emissao AS TIMESTAMP) AS dat_emissao,
+    SAFE_CAST(aco.dth_processamento AS TIMESTAMP) AS dth_processamento,
+    SAFE_CAST(aco.dth_inclusao_origem AS TIMESTAMP) AS dth_inclusao_origem,
+    SAFE_CAST(aco.dth_alteracao_origem AS TIMESTAMP) AS dth_alteracao_origem,
+    SAFE_CAST(aco.dat_vencimento AS DATE) AS dat_vencimento,
+    aco.ind_situacao,
+    SAFE_CAST(aco.val_taxa_operacao AS INT64) AS val_taxa_operacao,
+    SAFE_CAST(aco.val_principal AS INT64) AS val_principal,
+    SAFE_CAST(aco.val_juros AS INT64) AS val_juros,
+    SAFE_CAST(aco.val_atributo AS INT64) AS val_atributo,
+    SAFE_CAST(aco.val_total AS INT64) AS val_total,
+    SAFE_CAST(ori.val_desconto_total AS INT64) AS val_desconto,
+    SAFE_CAST(aco.val_saldo_principal AS INT64) AS val_saldo_principal,
+    SAFE_CAST(aco.val_saldo_total AS INT64) AS val_saldo_total,
+    SAFE_CAST(aco.val_saldo_atual AS INT64) AS val_saldo_atual,
+    SAFE_CAST(aco.qtd_dias_atraso AS INT64) AS qtd_dias_atraso,
+    SAFE_CAST(ori.dat_atraso_orig_acordo AS DATE) AS dat_atraso_orig_acordo,
+    SAFE_CAST(tip.id_acordo_usuario AS INT64) AS id_acordo_usuario,
+    tip.nom_acordo_usuario,
+    SAFE_CAST(tip.id_acordo_assessoria AS INT64) AS id_acordo_assessoria,
+    tip.nom_acordo_assessoria,
+    SAFE_CAST(neg.id_acordo_negociacao AS INT64) AS id_acordo_negociacao,
+    neg.nom_acordo_negociacao,
+    tip.tip_acordo_meio_pagto,
+    aco.dat_referencia
+FROM
+    acordo_linha aco
+LEFT JOIN cliente cli ON aco.id_cliente_externo = cli.id_cliente_externo AND aco.dat_referencia = cli.dat_referencia AND aco.rn = 1
+LEFT JOIN origem_acordo ori ON SAFE_CAST(aco.id_acordo_cobranca AS STRING) = SAFE_CAST(ori.id_acordo_cobranca AS STRING) AND aco.dat_referencia = ori.dat_referencia AND ori.rn = 1
+LEFT JOIN neg neg ON aco.id_acordo_cobranca = neg.id_acordo_cobranca AND aco.dat_referencia = neg.dat_referencia
+LEFT JOIN tip_pag_assess_user tip ON aco.id_acordo_cobranca = tip.id_acordo_cobranca AND aco.dat_referencia = tip.dat_referencia
+WHERE aco.rn = 1
+Processamento estimado: 4.13 MB
+ ------ 
+Iniciando validação em: conta_cartao.sqlx
+Nenhuma cláusula WHERE com as condições especificadas encontrada.
+--> requirePartitionFilter definido como TRUE
+--> partitionBy foi definido: num_anomesdia_movto
+Nome da partição está diferente no código SQL
+--> Não há CREATE TABLE IF NOT EXISTS em pre_operations
+Nome da dataset: pfs_unificacao_pefisa  REPETIÇÕES: 12
+Nome da tabela: mvto_portabilidade_salario  REPETIÇÕES: 12
+Nome da partição: num_anomesdia_movto  REPETIÇÕES: 12
+Commando @@query_label: NONE
+Commando BETWEEN: OK
+Commando AND: OK
+Commando IN: OK
+Commando OR: NONE
+Commando NOT: OK
+[31m ___ Sem erros em  conta_cartao.sqlx ___[0m
+
+ ------ 
+Realizando avaliação de custo: 
+Gravado com Sucesso:[33m conta_cartao.sql [0m
+WITH CONTAGEM_CONTAS_POR_CPF AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        CASE
+            WHEN ct.cod_sit_conta = 0 THEN 0
+            ELSE 1
+        END AS ind_sit_conta,
+        COUNT(DISTINCT ct.id_conta) OVER(PARTITION BY ct.num_cpf_cliente) AS conta_count
+    FROM
+        pfs_unificacao_pefisa.conta AS ct
+    WHERE
+        ct.num_anomes_ads_conta <= SAFE_CAST('2025-03-01' AS DATE)
+        AND ct.id_produto_cartao = 7
+        AND ct.cod_conta_corrente IS NOT NULL
+ ),
+UNICA_CONTA AS (
+    SELECT
+        b.id_conta,
+        b.id_produto_cartao,
+        b.num_cpf_cliente,
+        b.cod_conta_corrente,
+        b.dv_conta_corrente,
+        b.dth_ads_conta,
+        b.cod_sit_conta,
+        b.des_sit_conta
+    FROM
+        CONTAGEM_CONTAS_POR_CPF AS b
+     WHERE
+        b.conta_count = 1
+),
+TRATA_VARIAS_CONTAS_PRE1 AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        ct.ind_sit_conta
+    FROM
+        CONTAGEM_CONTAS_POR_CPF AS ct
+     WHERE
+        ct.conta_count > 1
+),
+TRATA_VARIAS_CONTAS_PRE2 AS (
+    SELECT
+        ct.id_conta,
+        ct.id_produto_cartao,
+        ct.num_cpf_cliente,
+        ct.cod_conta_corrente,
+        ct.dv_conta_corrente,
+        ct.dth_ads_conta,
+        ct.cod_sit_conta,
+        ct.des_sit_conta,
+        ROW_NUMBER() OVER (PARTITION BY ct.num_cpf_cliente ORDER BY ct.ind_sit_conta ASC, ct.dth_ads_conta DESC) AS seq_conta
+    FROM
+        TRATA_VARIAS_CONTAS_PRE1 AS ct
+),
+VARIAS_CONTAS AS (
+    SELECT
+        vc.id_conta,
+        vc.id_produto_cartao,
+        vc.num_cpf_cliente,
+        vc.cod_conta_corrente,
+        vc.dv_conta_corrente,
+        vc.dth_ads_conta,
+        vc.cod_sit_conta,
+        vc.des_sit_conta
+    FROM
+        TRATA_VARIAS_CONTAS_PRE2 AS vc
+    WHERE
+        vc.seq_conta = 1
+),
+UNICA_CONTA_UNION AS (
+    select * from UNICA_CONTA
+    UNION ALL
+    select * from VARIAS_CONTAS
+),
+UNICA_CONTA_PRE AS (
+  SELECT
+        uc.id_conta,
+        uc.id_produto_cartao,
+        uc.num_cpf_cliente,
+        regexp_replace(uc.cod_conta_corrente," ", "") AS cod_conta_corrente,
+        regexp_replace(uc.dv_conta_corrente," ", "") AS dv_conta_corrente,
+        uc.dth_ads_conta,
+        uc.cod_sit_conta,
+        uc.des_sit_conta
+    FROM UNICA_CONTA_UNION AS uc
+),
+MVTO_PORTABILIDADE_SALARIO_BASE AS (
+    SELECT DISTINCT
+        cnpj_cpf_clicredtdtitlar1 AS num_cpf_cnpj_cliente,
+        dt_movto AS dat_movimento,
+        TP_CT_CREDTD AS cod_tipo_conta_corrente,
+        SAFE_CAST(SUBSTR(SAFE_CAST(CT_CREDTD AS STRING), 1, LENGTH(SAFE_CAST(CT_CREDTD AS STRING)) - 1) AS STRING) AS cod_conta_corrente,
+        SAFE_CAST(SUBSTR(SAFE_CAST(CT_CREDTD AS STRING), LENGTH(SAFE_CAST(CT_CREDTD AS STRING))) AS STRING) AS dv_conta_corrente,
+        COD_TIPO_LIQDC AS cod_tipo_transacao,
+        VALOR AS val_transacao,
+        SITUACAO_DOC AS des_situacao_doc,
+        num_anomesdia_movto,
+        CURRENT_TIMESTAMP() AS dth_inclusao_reg
+    FROM
+        pfs_raw_matera.vts_doc_recebido
+    WHERE
+        COD_TIPO_LIQDC = 'STR0037R2-DRSTR'
+        AND SITUACAO_DOC IN ('ACATADO', 'LANCAMENTO MANUAL')
+        AND num_anomesdia_movto BETWEEN SAFE_CAST('2024-01-01' AS DATE) AND SAFE_CAST('2025-02-01' AS DATE)
+),
+CLIENTE AS (
+  SELECT id_cliente, num_cpf_cnpj_cliente
+  FROM pfs_unificacao_cliente.cliente
+  WHERE num_cpf_cnpj_cliente > 0
+)
+SELECT
+    t1.*,
+    t2.id_cliente,
+    t3.id_conta AS id_conta_digital,
+    t3.id_produto_cartao AS id_produto_conta_digital
+FROM
+    MVTO_PORTABILIDADE_SALARIO_BASE AS t1
+LEFT OUTER JOIN
+    CLIENTE AS t2
+    ON t1.num_cpf_cnpj_cliente = t2.num_cpf_cnpj_cliente
+LEFT OUTER JOIN
+    UNICA_CONTA_PRE AS t3
+    ON t1.cod_conta_corrente = t3.cod_conta_corrente
+    AND t1.dv_conta_corrente = t3.dv_conta_corrente

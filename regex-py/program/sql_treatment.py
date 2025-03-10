@@ -30,7 +30,8 @@ def sub_dates_in_sqlcode(file_content, dates):
     return file_content
 
 def sub_dataset_table(file_content):
-  pattern = r"\$\{ref\('([^']+)',\s*'([^']+)'\)\}"
+  pattern = r"\$\{ref\([\'\"]([^\'\"]+)[\'\"],\s*[\'\"]([^\'\"]+)[\'\"]\)\}"
+
   matches = re.findall(pattern, file_content, re.IGNORECASE)
   for match in matches:
     # Obtendo dataset e tabela de cada correspondência
