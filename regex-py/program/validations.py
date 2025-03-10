@@ -173,37 +173,6 @@ def validate_where_clause3(content):
     if not where_matches:
         print("\033[33m--> Nenhuma cláusula WHERE <= CURRENT_TIMESTAMP() encontrada no script\033[0m")
     print(f"--> Cláusulas WHERE <= CURRENT_TIMESTAMP() encontradas: \033[33m{len(where_matches)}\033[0m")
-def create_sql_for_validate(content, file_name):
-    """
-    OBJETIVO: Criar um arquivo SQL para validar se a tabela existe.
-
-    PARâMETROS: O conteúdo que passará por validação e o nome do arquivo.
-    """
-    sql_folder = './sql_files_for_tests'
-
-    # Padrão para encontrar código SQL
-    pattern = r"pre_operations(.*?)post_operations"
-    # busca a incidencia no conteudo
-    match = re.search(pattern, content, re.DOTALL)
-    if match:
-        # obter codigo
-        sql_code = match.group() 
-        lines = sql_code.splitlines()
-        
-        # remove linhas desnecessárias
-        sql_cleaned = '\n'.join(lines[1:-1])
-            
-        # Cria a pasta para armazenar SQLs
-        if not os.path.exists(sql_folder):
-            os.makedirs(sql_folder)
-
-        file_name = file_name.replace("sqlx", "sql")
-        path = './sql_files_for_tests/{}'.format(file_name)
-
-        # Grava arquivo para realizar teste
-        with open(path, "w", encoding="utf-8") as file:
-            file.write(sql_cleaned)
-            print("Gravado com Sucesso:\033[33m {} \033[0m".format(file_name))
 
 def exec_validations(content, file_name):
     """
@@ -219,7 +188,6 @@ def exec_validations(content, file_name):
         validate_partitionDefinition(content)
         validate_create_table(content)
         #validation_if_exists(content)
-        create_sql_for_validate(content, file_name)
         find_name("dataset","processo",content)
         find_name("tabela","name",content)
         find_name("partição","partitionBy",content)

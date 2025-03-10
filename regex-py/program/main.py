@@ -2,6 +2,7 @@ import os
 from validations import exec_validations
 import re
 from files import get_content, load_files
+from sql_validation import sql_cost_validation
 
     # Carregando diretório Definitions
 definitions = os.getenv("SOURCE_FOLDER")    
@@ -21,6 +22,10 @@ for file in files:
 
     if (result == None):
         print("\033[31m ___ Sem erros em  {} ___\033[0m\n".format(file))
+        print(" ----- ")
+        print("Realizando avaliação de custo: ")
+        sql_cost_validation(file_content, file)
+
     else:
         print("Erro em \033[33m {} \033[0m - {}\n".format(file, result))
         ok.append(result)
