@@ -70,9 +70,6 @@ cliente AS (
     WHERE
         dat_referencia BETWEEN dat_ini_movimento AND dat_fim_movimento
 ),
-
-updatePartitionFilter
-uniqueKey
 origem_acordo AS (
     SELECT
         dat_referencia,
@@ -155,35 +152,3 @@ LEFT JOIN origem_acordo ori ON CAST(aco.id_acordo_cobranca AS STRING) = CAST(ori
 LEFT JOIN neg neg ON aco.id_acordo_cobranca = neg.id_acordo_cobranca AND aco.dat_referencia = neg.dat_referencia
 LEFT JOIN tip_pag_assess_user tip ON aco.id_acordo_cobranca = tip.id_acordo_cobranca AND aco.dat_referencia = tip.dat_referencia
 WHERE aco.rn = 1
-post_operations {
-  SET after_rows_count = (
-    SELECT
-      row_count
-    FROM
-      ${ref("__TABLES__")}
-    WHERE
-      table_id = 'cobranca_acordo'
-  );
-  SET atual_ult_data_processada = (
-    SELECT
-      max(dth_processamento)
-    FROM
-      ${self()}
-    WHERE
-      dth_processamento >= dth_ult_data_processada
-      AND dat_referencia BETWEEN dat_ini_movimento AND dat_fim_movimento
-    LIMIT 1
-  );
-  CALL integracaohomologado.corp_gestao_processamento.insert_processo_log(
-    nom_processo,
-    nom_tabela,
-    dat_ini_movimento,
-    dat_fim_movimento,
-    atual_ult_data_processada,
-    dth_inicio_execucao,
-    (
-      SELECT
-        after_rows_count - before_rows_count AS count
-    ),
-    "EXECUÇÃO FINALIZADA COM SUCESSO"
-  );'
