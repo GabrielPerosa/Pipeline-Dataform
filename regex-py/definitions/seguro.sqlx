@@ -1,0 +1,103 @@
+config {
+  type: "incremental",
+  name: "produto_financeiro_novo",
+  description: "Carrega dados de produtos financeiros do sistema de seguros SSA e consolida com dados existentes.",
+  tags: [],
+  columns: {
+    id_produto_financeiro: "ID do produto financeiro.",
+    cod_produto_financeiro_so: "Código do produto financeiro no sistema de origem.",
+    des_tip_origem: "Tipo de origem dos dados.",
+    nom_produto_financeiro: "Nome do produto financeiro.",
+    des_produto_financeiro: "Descrição do produto financeiro.",
+    flg_seguro_mensal: "Indicador de seguro mensal.",
+    qtd_parcelas_bonificacao: "Quantidade de parcelas de bonificação.",
+    cod_tip_bonificacao_mensal: "Código do tipo de bonificação mensal.",
+    des_tip_bonificacao_mensal: "Tipo de bonificação mensal.",
+    dth_ult_atu_so: "Data da última atualização no sistema de origem.",
+    dth_inclusao_reg: "Data de inclusão do registro.",
+    dat_referencia: "Data de referência."
+  },
+  bigquery: {
+    labels: {
+      processo: "pfs_unificacao_pefisa",
+    },
+    partitionBy: "dat_referencia",
+    requirePartitionFilter: true,
+  }
+}
+pre_operations {
+  DECLARE nom_processo STRING DEFAULT "produto_financeiro.sqlx";
+  DECLARE nom_tabela STRING DEFAULT "produto_financeiro";
+  DECLARE dat_ini_movimento DATE;
+  DECLARE dat_fim_movimento DATE;
+  DECLARE dth_ult_data_processada TIMESTAMP;
+  DECLARE dth_inicio_execucao TIMESTAMP;
+  DECLARE atual_ult_data_processada TIMESTAMP;
+  DECLARE before_rows_count INT64;
+  DECLARE after_rows_count INT64;
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.get_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    dth_ult_data_processada,
+    dth_inicio_execucao
+  );
+  SET before_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'produto_financeiro'
+  );
+}
+WITH produto_seguro AS (
+    SELECT
+        id_ProdutoSeguro AS id_produto_financeiro,
+        CAST(cd_ProdutoSeguro as INT64) AS cod_produto_financeiro_so,
+        'NOVO_SSA' AS des_tip_origem,
+        UPPER(nm_ProdutoSeguro) AS nom_produto_financeiro,
+        UPPER(REGEXP_REPLACE(dc_ProdutoSeguro, r'\n', '')) AS des_produto_financeiro,
+        CASE WHEN fl_SeguroMensal THEN 'S' ELSE 'N' END AS flg_seguro_mensal,
+        CAST(qt_ParcelasBonificacao as INT64) AS qtd_parcelas_bonificacao,
+        CAST(tp_BonificacaoMensal as INT64) AS cod_tip_bonificacao_mensal,
+        CASE
+            WHEN tp_BonificacaoMensal = 1 THEN 'VENCIMENTO'
+            WHEN tp_BonificacaoMensal = 2 THEN 'VIRADA DO MES'
+            ELSE NULL
+        END AS des_tip_bonificacao_mensal,
+        CAST(production_date AS TIMESTAMP) AS dth_ult_atu_so,
+        CURRENT_TIMESTAMP() AS dth_inclusao_reg,
+        CAST(FORMAT_DATE('%Y-%m-%d', CURRENT_DATE()) AS DATE) AS dat_referencia
+    FROM
+        ${ref("pfs_seguros_ssa", "produto_seguro")}
+    WHERE production_date BETWEEN dat_ini_movimento AND dat_fim_movimento
+),
+produto_seguro_all AS (
+    SELECT * FROM produto_seguro
+    UNION ALL
+    SELECT * FROM `pfs_unificacao_pefisa.produto_financeiro`
+    WHERE des_tip_origem != 'NOVO_SSA' AND dat_referencia BETWEEN dat_ini_movimento AND dat_fim_movimento
+)
+SELECT * FROM produto_seguro_all
+post_operations {
+  SET after_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'produto_financeiro'
+  );
+  SET atual_ult_data_processada = (
+    SELECT max(dth_inclusao_reg)
+    FROM ${self()}
+    WHERE dth_inclusao_reg >= dth_ult_data_processada
+    LIMIT 1
+  );
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.insert_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    atual_ult_data_processada,
+    dth_inicio_execucao,
+    (SELECT after_rows_count - before_rows_count AS count),
+    "EXECUÇÃO FINALIZADA COM SUCESSO"
+  );
+}

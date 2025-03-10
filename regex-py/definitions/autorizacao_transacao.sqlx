@@ -1,0 +1,291 @@
+config {
+  type: "incremental",
+  name: "transacao_contabilizada_hist",
+  description: "Carrega os dados de transações contabilizadas do raw para o datawarehouse.",
+  tags: [],
+  columns: {
+    id_transacao: "Identificador da transação.",
+    id_conta_ccred_transacao: "Identificador da conta.",
+    id_produto_ccred_transacao: "Identificador do produto.",
+    id_fatura: "Identificador da fatura.",
+    id_autorizacao: "Identificador da autorização.",
+    cod_processamento: "Código do processamento.",
+    des_processamento: "Descrição do processamento.",
+    num_sequencial_ccred_transacao: "Número sequencial da transação.",
+    cod_portador_transacao: "Código do portador da transação.",
+    id_cliente_so: "Identificador do cliente.",
+    num_cpf_cliente: "CPF do cliente.",
+    cod_tipo_transacao: "Código do tipo de transação.",
+    des_tipo_transacao: "Descrição do tipo de transação.",
+    id_estab_transacao_so: "Identificador do estabelecimento.",
+    cod_estab_transacao: "Código do estabelecimento.",
+    id_estab_exter_transacao: "Identificador do estabelecimento externo.",
+    des_estab_exter_transacao: "Descrição do estabelecimento externo.",
+    cod_status_contabil_trans: "Código do status contábil da transação.",
+    des_status_contabil_trans: "Descrição do status contábil da transação.",
+    cod_status_gerencial_trans: "Código do status gerencial da transação.",
+    des_status_gerencial_trans: "Descrição do status gerencial da transação.",
+    cod_status_conta_transacao: "Código do status da conta da transação.",
+    des_status_conta_transacao: "Descrição do status da conta da transação.",
+    dth_origem_transacao: "Data de origem da transação.",
+    dth_geracao_transacao: "Data de geração da transação.",
+    val_transacao: "Valor da transação.",
+    dth_vencto_real_transacao: "Data de vencimento real da transação.",
+    dth_vencto_padrao_transacao: "Data de vencimento padrão da transação.",
+    dth_faturamento_transacao: "Data de faturamento da transação.",
+    dth_vencto_padrao_trans: "Data de vencimento padrão da transação.",
+    des_historico_transacao: "Histórico da transação.",
+    id_evento_exter_trans_so: "Identificador do evento externo.",
+    flg_extrato: "Indicador de extrato.",
+    flg_credito: "Indicador de crédito.",
+    flg_faturado: "Indicador de faturado.",
+    flg_estornado: "Indicador de estornado.",
+    id_transacao_estorno: "Identificador da transação de estorno.",
+    des_complemento_transacao: "Complemento da transação.",
+    num_seq_ult_alteracao: "Número sequencial da última alteração.",
+    dth_ult_atu_so: "Data da última atualização.",
+    des_funcao_cartao: "Descrição da função do cartão.",
+    dth_inclusao_reg: "Data de inclusão do registro.",
+    num_anomes_geracao_trans: "Ano e mês de geração da transação.",
+    des_origem: "Origem dos dados.",
+    dat_referencia: "Data de referência."
+  },
+  bigquery: {
+    labels: {
+      processo: "pfs_unificacao_pefisa",
+    },
+    partitionBy: "dat_referencia",
+    requirePartitionFilter: true,
+    clusterBy: ["des_origem"]
+  }
+}
+pre_operations {
+  DECLARE nom_processo STRING DEFAULT "transacao_contabilizada_hist.sqlx";
+  DECLARE nom_tabela STRING DEFAULT "transacao_contabilizada_hist";
+  DECLARE dat_ini_movimento DATE;
+  DECLARE dat_fim_movimento DATE;
+  DECLARE dth_ult_data_processada TIMESTAMP;
+  DECLARE dth_inicio_execucao TIMESTAMP;
+  DECLARE atual_ult_data_processada TIMESTAMP;
+  DECLARE before_rows_count INT64;
+  DECLARE after_rows_count INT64;
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.get_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    dth_ult_data_processada,
+    dth_inicio_execucao
+  );
+  SET before_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'transacao_contabilizada_hist'
+  );
+}
+WITH transacao_corrente AS (
+    SELECT
+        hash_key,
+        tc_id_transacao,
+        tc_id_conta,
+        tc_id_produto,
+        tc_sequencialcartao,
+        tc_portador,
+        tc_id_tipotransacao,
+        tc_id_estabelecimento,
+        tc_id_estabelecimento_visa,
+        tc_statuscontabil,
+        tc_statusgerencial,
+        tc_statusconta,
+        tc_dataorigem,
+        tc_datageracao,
+        tc_valor,
+        tc_datavencimentoreal,
+        tc_datavencimentopadrao,
+        tc_datafaturamento,
+        tc_datavencpadrao,
+        tc_historico,
+        tc_id_eventoexterno,
+        CASE WHEN tc_faturado = 1 THEN 'S' ELSE 'N' END AS tc_faturado,
+        CASE WHEN tc_flagestornado = 1 THEN 'S' ELSE 'N' END AS tc_flagestornado,
+        tc_id_transacaoestorno,
+        tc_complemento,
+        operation_sequence,
+        dh_relatorio,
+        operation,
+        production_date
+    FROM
+        ${ref("pfs_raw_conductor", "transacao_corrente")}
+    WHERE production_date BETWEEN dat_ini_movimento AND dat_fim_movimento
+     AND tc_datageracao >= '2016-01-01'
+),
+v_tipo_transacao AS (
+    SELECT
+        tt_descricao,
+        CASE WHEN tt_flagextrato = TRUE THEN 'S' ELSE 'N' END AS tt_flagextrato,
+        CASE WHEN tt_flagcredito = TRUE THEN 'S' ELSE 'N' END AS tt_flagcredito,
+        tt_id_tipotransacao
+    FROM
+        ${ref("pfs_unificacao_pefisa", "v_tipo_transacao")}
+),
+transacao_newdata_stage_1 AS (
+    SELECT
+        *
+    FROM
+        transacao_corrente
+        LEFT JOIN v_tipo_transacao ON transacao_corrente.tc_id_tipotransacao = v_tipo_transacao.tt_id_tipotransacao
+),
+cartao AS (
+    SELECT
+        id_cliente_so,
+        num_cpf_cliente,
+        id_conta_hist_dock AS id_conta,
+        cod_tip_portador,
+        num_seq_via_cartao,
+        num_anomes_emis_cartao
+    FROM
+        ${ref("pfs_unificacao_pefisa", "cartao")}
+    WHERE num_anomes_emis_cartao BETWEEN dat_ini_movimento AND dat_fim_movimento
+),
+transacao_newdata_stage_2 AS (
+    SELECT
+        *
+    FROM
+        transacao_newdata_stage_1
+        LEFT JOIN cartao ON transacao_newdata_stage_1.tc_id_conta = cartao.id_conta
+         AND transacao_newdata_stage_1.tc_portador = cartao.cod_tip_portador
+         AND transacao_newdata_stage_1.tc_sequencialcartao = cartao.num_seq_via_cartao
+),
+v_estabelecimento AS (
+    SELECT
+        cod_estabelecimento_cdt,
+        cod_estabelecimento
+    FROM
+        ${ref("pfs_unificacao_cliente", "v_estabelecimento")}
+),
+v_estabelecimento_externo AS (
+    SELECT
+        id_estabelecimento_externo,
+        nom_estabelecimento_externo,
+        dat_referencia
+    FROM
+        ${ref("pfs_unificacao_pefisa", "estabelecimento_externo")}
+    WHERE dat_referencia BETWEEN dat_ini_movimento AND dat_fim_movimento
+),
+v_dominio_status_vds AS (
+    SELECT
+        std_status,
+        st_id_status,
+        std_descricao
+    FROM
+        ${ref("pfs_unificacao_pefisa", "v_dominio_status")}
+    WHERE st_id_status = 8
+),
+v_dominio_status_vds1 AS (
+    SELECT
+        std_status AS std_status1,
+        st_id_status AS st_id_status1,
+        std_descricao AS std_descricao1
+    FROM
+        ${ref("pfs_unificacao_pefisa", "v_dominio_status")}
+    WHERE st_id_status = 5
+),
+v_status_conta AS (
+    SELECT
+        sct_descricao,
+        sct_status
+    FROM
+        ${ref("pfs_unificacao_pefisa", "v_status_conta")}
+),
+transacao_newdata_stage_3 AS (
+    SELECT
+        *
+    FROM
+        transacao_newdata_stage_2
+        LEFT JOIN v_estabelecimento ON transacao_newdata_stage_2.tc_id_estabelecimento = v_estabelecimento.cod_estabelecimento_cdt
+        LEFT JOIN v_estabelecimento_externo ON transacao_newdata_stage_2.tc_id_estabelecimento_visa = v_estabelecimento_externo.id_estabelecimento_externo
+),
+transacao_newdata_stage_4 AS (
+    SELECT
+        *
+    FROM
+        transacao_newdata_stage_3
+        LEFT JOIN v_dominio_status_vds ON transacao_newdata_stage_3.tc_statuscontabil = v_dominio_status_vds.std_status
+        LEFT JOIN v_dominio_status_vds1 ON transacao_newdata_stage_3.tc_statuscontabil = v_dominio_status_vds1.std_status1
+        LEFT JOIN v_status_conta ON transacao_newdata_stage_3.tc_statusconta = v_status_conta.sct_status
+),
+final_result AS (
+    SELECT
+        tc_id_transacao AS id_transacao,
+        tc_id_conta AS id_conta_ccred_transacao,
+        tc_id_produto AS id_produto_ccred_transacao,
+        CAST(NULL AS INT64) AS id_fatura,
+        CAST(NULL AS INT64) AS id_autorizacao,
+        CAST(NULL AS STRING) AS cod_processamento,
+        CAST(NULL AS STRING) AS des_processamento,
+        tc_sequencialcartao AS num_sequencial_ccred_transacao,
+        tc_portador AS cod_portador_transacao,
+        id_cliente_so,
+        num_cpf_cliente,
+        tc_id_tipotransacao AS cod_tipo_transacao,
+        UPPER(tt_descricao) AS des_tipo_transacao,
+        tc_id_estabelecimento AS id_estab_transacao_so,
+        cod_estabelecimento AS cod_estab_transacao,
+        tc_id_estabelecimento_visa AS id_estab_exter_transacao,
+        UPPER(nom_estabelecimento_externo) AS des_estab_exter_transacao,
+        tc_statuscontabil AS cod_status_contabil_trans,
+        UPPER(std_descricao) AS des_status_contabil_trans,
+        tc_statusgerencial AS cod_status_gerencial_trans,
+        UPPER(std_descricao1) AS des_status_gerencial_trans,
+        tc_statusconta AS cod_status_conta_transacao,
+        UPPER(sct_descricao) AS des_status_conta_transacao,
+        tc_dataorigem AS dth_origem_transacao,
+        tc_datageracao AS dth_geracao_transacao,
+        tc_valor AS val_transacao,
+        tc_datavencimentoreal AS dth_vencto_real_transacao,
+        tc_datavencimentopadrao AS dth_vencto_padrao_transacao,
+        tc_datafaturamento AS dth_faturamento_transacao,
+        tc_datavencpadrao AS dth_vencto_padrao_trans,
+        UPPER(tc_historico) AS des_historico_transacao,
+        tc_id_eventoexterno AS id_evento_exter_trans_so,
+        tt_flagextrato AS flg_extrato,
+        tt_flagcredito AS flg_credito,
+        tc_faturado AS flg_faturado,
+        tc_flagestornado AS flg_estornado,
+        tc_id_transacaoestorno AS id_transacao_estorno,
+        UPPER(tc_complemento) AS des_complemento_transacao,
+        operation_sequence AS num_seq_ult_alteracao,
+        dh_relatorio AS dth_ult_atu_so,
+        CAST(NULL AS STRING) AS des_funcao_cartao,
+        CAST(CURRENT_TIMESTAMP() AS TIMESTAMP) AS dth_inclusao_reg,
+        CAST(FORMAT_DATE('%Y%m', tc_datageracao) AS INT64) AS num_anomes_geracao_trans,
+        'DOCK' AS des_origem,
+        production_date AS dat_referencia
+    FROM
+        transacao_newdata_stage_4
+)
+SELECT * FROM final_result
+post_operations {
+  SET after_rows_count = (
+    SELECT row_count
+    FROM ${ref("__TABLES__")}
+    WHERE table_id = 'transacao_contabilizada_hist'
+  );
+  SET atual_ult_data_processada = (
+    SELECT max(dth_ult_atu_so)
+    FROM ${self()}
+    WHERE dth_ult_atu_so >= dth_ult_data_processada
+    AND dat_referencia BETWEEN dat_ini_movimento AND dat_fim_movimento
+    LIMIT 1
+  );
+  CALL `data-engineer-dev-hml-352814.corp_gestao_processamento.insert_processo_log`(
+    nom_processo,
+    nom_tabela,
+    dat_ini_movimento,
+    dat_fim_movimento,
+    atual_ult_data_processada,
+    dth_inicio_execucao,
+    (SELECT after_rows_count - before_rows_count AS count),
+    "EXECUÇÃO FINALIZADA COM SUCESSO"
+  );
+}
