@@ -136,20 +136,41 @@ def validate_type_in_config(content):
     result = re.search(incremental_pattern, content)
     return result.group(1)
 
-def validate_where_clause(content):
+def validate_where_clause(filename, content):
     """
-    OBJETIVO: Verificar a presença de cláusulas WHERE que contenham a condição '<= CURRENT_DATE()' no script SQL.
-
-    PARÂMETROS: Content (str): Conteúdo do script SQL a ser analisado.
+    OBJETIVO: Verificar a presença de cláusulas WHERE contendo as condições especificadas no script SQL.
+    
+    PARÂMETROS: 
+        filename (str): Nome do arquivo SQL sendo analisado.
+        content (str): Conteúdo do script SQL a ser analisado.
     """
-    words = ['CURRENT_DATE', 'CURRENT_TIMESTAMP']
-    for w in words:
-        where_pattern = fr'WHERE\s+([^;]*\s*<=*\s*{w}\(\)\s*[^;]*)'
-        where_matches = re.findall(where_pattern, content, re.IGNORECASE)
 
-        if not where_matches:
-            print("\033[33m--> Nenhuma cláusula WHERE <= {} encontrada no script\033[0m".format(w))
-        print(f"--> Cláusulas WHERE <= {w} encontradas: \033[33m{len(where_matches)}\033[0m")
+    print(f"\nIniciando validação em: {filename}\n")
+
+    conditions = ["CURRENT_DATE", "CURRENT_TIMESTAMP", "dat_fim_movimento"]
+    operators = ["<=", "<"]
+
+    found_clauses = []
+    
+    # Verifica todas as condições com os operadores < e <=
+    for cond in conditions:
+        for op in operators:
+            pattern = fr'WHERE\s+(\w+)\s*{re.escape(op)}\s*{cond}\(\)?'
+            matches = re.findall(pattern, content, re.IGNORECASE | re.DOTALL)
+
+            for match in matches:
+                found_clauses.append(f"Cláusula {len(found_clauses) + 1}: WHERE {match} {op} {cond}()")
+
+    if found_clauses:
+        print(f"\033[32mEncontradas {len(found_clauses)} cláusulas WHERE com as condições especificadas.\033[0m\n")
+        for clause in found_clauses:
+            print(f"  {clause}")
+    else:
+        print("\033[31mNenhuma cláusula WHERE com as condições especificadas encontrada.\033[0m\n")
+
+    # Exemplo de erro extra (personalize conforme necessário)
+    if "requirePartitionFilter" not in content:
+        print(f"Erro em {filename} - Erro: requirePartitionFilter não foi definido como true\n")
 
 
 def exec_validations(content, file_name):
