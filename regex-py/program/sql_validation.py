@@ -15,7 +15,7 @@ def create_sql_for_validate(content, file_name):
     PARâMETROS: O conteúdo que passará por validação e o nome do arquivo.
         Converte código SQLX para SQL do BigQuery, removendo declarações de variáveis.
 
-    Returns:
+    RETORNO:
         str: O nome do arquivo gravado
     """
     # Padrão para encontrar código SQL
@@ -24,7 +24,7 @@ def create_sql_for_validate(content, file_name):
     # busca a incidencia no conteudo
     match = re.search(pattern, content, re.DOTALL)
     if match:
-        # obter codigo
+        # Obtendo codigo
         sql_code = match.group() 
         lines = sql_code.splitlines()
         # remove linhas desnecessárias
@@ -52,11 +52,12 @@ def create_sql_for_validate(content, file_name):
 
 def sql_cost_validation(content, file_name):
     """
+    OBJETIVO:
         Realiza tratamento adicional no código SQL e o envia para a API BigQuery
         para avaliar custo estimado de processamento da consulta
     
-    Args:
-        content (str): Conteudo a ser gravado.
+    PARÂMETROS:
+        content (str): Conteudo a ser gravado para análise.
         file_name (str): Nome do arquivo a ser gravado.
     """
 
@@ -68,12 +69,15 @@ def sql_cost_validation(content, file_name):
     else:
         print("erro")
         return
+    
     # Realizando tratamentos nos arquivos
     sql_code = sql_treatment(content, dates)
-    print(sql_code)
+    
     # Abrindo cliente BigQuery
     client = bigquery.Client(project=project_id)
     job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
+    
+    # Realizando consulta e exibindo valor do processamento
     query_job = client.query((sql_code), job_config)
     mb_processed = query_job.total_bytes_processed/pow(1024,2)
     mb_processed = round(mb_processed, 2)
