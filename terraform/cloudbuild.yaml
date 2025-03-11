@@ -15,7 +15,6 @@ steps:
         sqlfluff lint ../definitions/
 
 
-        # Roda o dataform.py
         cd dataform/
         pip install -r requirements.txt
         pip install --upgrade pip
@@ -72,6 +71,22 @@ steps:
         echo "Push das mudanças para a branch $_BRANCH_NAME..."
         git push https://${_GIT_USER_NAME}:${_GIT_TOKEN}@github.com/GabrielPerosa/Pipeline-Dataform.git $_BRANCH_NAME
 
+  - id: 'docker-image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'southamerica-east1-docker.pkg.dev/integracaohomologado/cicd/cicd-pipeline:latest'
+      - '.'
+
+  - id: 'docker-push'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'southamerica-east1-docker.pkg.dev/integracaohomologado/cicd/cicd-pipeline:latest'
+
+images:
+  - 'southamerica-east1-docker.pkg.dev/integracaohomologado/cicd/cicd-pipeline:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
