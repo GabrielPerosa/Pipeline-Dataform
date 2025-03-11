@@ -1,11 +1,36 @@
-# Validação Sintxe SQL e custo de Processamento
+# Validação Sintaxe SQL e custo de Processamento
 
-- Declarações de Variáveis: As linhas que começam com DECLARE foram removidas. O BigQuery não suporta declarações de variáveis da mesma forma que o SQLX.
-- Chamadas de Procedimentos: As linhas que começam com CALL foram removidas. Essas chamadas são específicas do ambiente SQLX e não são compatíveis com o BigQuery padrão.
-- Bloco post_operations: Todo o bloco post_operations foi removido. Esse bloco contém comandos que são executados após a consulta principal no SQLX, mas não são suportados no BigQuery padrão.
+O arquivo `sql_validation.py` tem o objetivo de armazenar a lógica necessária para estimar o custo em processsamento de consulta. 
 
-- ${ref(...) }: A função ${ref(...) } é usada no Dataform para referenciar tabelas em outros datasets ou projetos. No BigQuery, precisamos substituir essas referências pelos nomes completos das tabelas. 
+## Dependências
 
-- Datas Fixas: Como as variáveis dat_ini_movimento e dat_fim_movimento foram removidas, os filtros WHERE production_date BETWEEN dat_ini_movimento AND dat_fim_movimento foram substituídos por filtros com datas fixas.
+## Dependências
+`re` - biblioteca para regex
 
-- CAST e SAFE_CAST: As funções CAST e SAFE_CAST foram usadas para converter os tipos de dados das colunas, principalmente para INT64 (inteiro de 64 bits). 
+`os` - biblioteca para interagir com o sistema operacional
+
+`files` - pacote que contém funções necessárias para carregar arquivos e obter seu conteúdo
+
+`google.cloud` - biblioteca Google para interarir com serviços do Google Cloud
+
+`sql_treatment` - pacote que contém a função interface para realizaar tratamentos no código SQL 
+
+### **create_sql_for_validate**:
+Tem o objetivo de criar um arquivo `.sql` que será base para realização de tratamentos para gerar um código compatível com o BigQuery.
+
+**Argumentos**: 
+- **content**: conteúdo sqlx que será **semi-tratado** para gerar um SQL base 
+- **filename**:  nome do arquivo **.sqlx** que será criado
+
+**Retorno**:
+- **filename**: nome do arquivo .sql criado
+- **Exceção**: caso haja algum erro, retorna uma exceção
+
+### **sql_cost_validation**:
+Chama a função acima responsável por criar um arquivo **.sql** base e, logo em seguida, chama a função que realiza tratamentos no arquivo gerado(**sql_treatment**), para assim obter um código compatível com o BigQuery. Depois desses dois passos, é aberta uma conexão com o cliente BigQuery para realizar uma estimativa de custo em processamento da consulta.
+
+
+**Argumentos**: 
+- **content**: conteúdo sqlx que será **semi-tratado** para gerar um SQL base com a função **create_sql_for_validate**
+- **filename**:  nome do arquivo **.sqlx** que será criado
+
