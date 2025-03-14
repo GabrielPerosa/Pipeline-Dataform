@@ -7,7 +7,7 @@ Este arquivo contém funções para converter código SQLX em SQL compatível co
 
 `os` - biblioteca para interagir com o sistema operacional
 
-## Funções
+## Funções de tratamento
 ### sql_treatment(content, variables)
 
 - **Descrição**: Converte código SQLX para SQL do BigQuery, removendo declarações de variáveis e outros elementos não compativeis com o BigQuery

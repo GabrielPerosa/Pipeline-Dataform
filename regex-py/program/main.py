@@ -1,6 +1,5 @@
 import os        
 from validations import exec_validations
-import re
 from files import get_content, load_files
 from sql_validation import sql_cost_validation
 
