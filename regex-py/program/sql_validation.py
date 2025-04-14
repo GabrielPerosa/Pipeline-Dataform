@@ -84,7 +84,7 @@ def sql_cost_validation(content, file_name):
     print('Processamento estimado: {} MB'.format(mb_processed))
     
     tb_processed = mb_processed /  1.048.576
-    cost =  5 * tb_processed
+    cost =  6.25 * tb_processed
     print('Custo estimado: {}$'.format(cost))
 
 
